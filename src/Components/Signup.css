@@ -1,4 +1,4 @@
-/* Login.css */
+/* Signup.css */
 
 body {
     margin: 0;
@@ -7,7 +7,7 @@ body {
     background-color: #f2f2f2;
   }
   
-  .background {
+  .signup-background {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -15,7 +15,7 @@ body {
     /* background: linear-gradient(135deg, #6b73ff 10%, #000dff 100%); */
   }
   
-  .login-container {
+  .signup-container {
     background: white;
     padding: 2rem;
     border-radius: 10px;
@@ -36,16 +36,6 @@ body {
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 1rem;
-  }
-  
-  .show-password-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  
-  .show-password-container input {
-    margin-right: 0.5rem;
   }
   
   .button {
