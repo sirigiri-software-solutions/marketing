@@ -53,4 +53,11 @@ body {
   .button:hover {
     background-color: #6b73ff;
   }
-  
+
+  .error-text {
+    color: red;
+    font-size: 0.750rem; /* Smaller font size */
+    margin-top: -0.5rem; /* Adjust positioning if needed */
+    margin-bottom: 0.5rem;
+    text-align: left; /* Align error messages to the left */
+  }

@@ -1,4 +1,4 @@
-.dashboard {
+/* .dashboard {
     display: flex;
     flex-direction: column;
    
@@ -97,4 +97,116 @@
     margin-top: 10px;
     margin-left: 800px;
   }
-  
+   */
+
+   /* Dashboardpage.css */
+
+/* Dashboardpage.css */
+
+.dashboard-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+}
+
+.dashboard-container h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 4px;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.hostel-form {
+  background-color: white;
+  border: 1px solid #dddddd;
+  padding: 20px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hostel-form input[type="text"],
+.hostel-form input[type="file"] {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+}
+
+.error-text {
+  color: red;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.hostel-list {
+  margin-top: 20px;
+}
+
+.hostel-item {
+  background-color: white;
+  border: 1px solid #dddddd;
+  padding: 20px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hostel-item h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.hostel-item p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+/* Add the following CSS to position the location icon inside the input field */
+
+.location-field {
+  position: relative;
+}
+
+.location-field input {
+  width: calc(100% - 40px); /* Adjust input width to make room for the button */
+  padding-right: 40px; /* Add padding to the right to make room for the icon */
+}
+
+.location-field button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  border: none;
+  background: none;
+  padding: 0 10px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.location-field button i {
+  color: #555; /* You can adjust the color of the icon */
+}
+
+.hostel-image {
+  max-width: 100px;
+  max-height: 100px;
+}
+
+
