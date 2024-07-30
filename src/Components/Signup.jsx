@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ref, get, push, set } from "firebase/database";
 import { database } from "../Firebase";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import "./Signup.css";
 
 const Signup = () => {
@@ -14,34 +12,29 @@ const Signup = () => {
     password: "",
     confirmpassword: "",
   });
+
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const handleSignup = () => {
     const { firstName, lastName, email, password, confirmpassword } = signupData;
+    let formErrors = {};
 
-    if (!firstName || !lastName || !email || !password || !confirmpassword) {
-      toast.error("Please fill in all fields", {
-        position: "bottom-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-      return;
-    }
+    if (!firstName) formErrors.firstName = "First Name is required";
+    if (!lastName) formErrors.lastName = "Last Name is required";
+    if (!email) formErrors.email = "Email is required";
+    if (!password) formErrors.password = "Password is required";
+    if (!confirmpassword) formErrors.confirmpassword = "Confirm Password is required";
 
-    if (password !== confirmpassword) {
-      toast.error("Passwords do not match", {
-        position: "bottom-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email && !emailRegex.test(email)) formErrors.email = "Invalid email format";
+
+    if (password && password.length < 6) formErrors.password = "Password must be at least 6 characters";
+
+    if (password !== confirmpassword) formErrors.confirmpassword = "Passwords do not match";
+
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
       return;
     }
 
@@ -55,32 +48,14 @@ const Signup = () => {
         );
 
         if (userExists) {
-          toast.error("User already exists", {
-            position: "bottom-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-          });
+          setErrors({ email: "User already exists" });
         } else {
           const newUserRef = push(userRef);
           set(newUserRef, {
             signupData: { firstName, lastName, email, password },
           })
             .then(() => {
-              toast.success("You are signed up successfully.", {
-                position: "bottom-right",
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-              });
-
-              // Clear the form after successful signup
+              localStorage.setItem("firstName", firstName); // Save first name to localStorage
               setSignupData({
                 firstName: "",
                 lastName: "",
@@ -88,35 +63,18 @@ const Signup = () => {
                 password: "",
                 confirmpassword: "",
               });
-
-              // Optionally, you can navigate to another page after successful signup
-              // navigate("/somepage");
+              setErrors({});
+              // navigate("/Dashboardpage"); // Navigate to the dashboard after successful signup
             })
             .catch((error) => {
               console.error("Error adding user data:", error);
-              toast.error("Error adding user data", {
-                position: "bottom-right",
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-              });
+              setErrors({ general: "Error adding user data" });
             });
         }
       })
       .catch((error) => {
         console.error("Error fetching user data:", error);
-        toast.error("Error fetching user data", {
-          position: "bottom-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
+        setErrors({ general: "Error fetching user data" });
       });
   };
 
@@ -125,6 +83,10 @@ const Signup = () => {
     setSignupData((prevData) => ({
       ...prevData,
       [name]: value,
+    }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: "",
     }));
   };
 
@@ -140,6 +102,8 @@ const Signup = () => {
             value={signupData.firstName}
             onChange={handleSignupChange}
           />
+          {errors.firstName && <div className="error-text">{errors.firstName}</div>}
+          
           <input
             type="text"
             placeholder="Last Name"
@@ -148,6 +112,8 @@ const Signup = () => {
             value={signupData.lastName}
             onChange={handleSignupChange}
           />
+          {errors.lastName && <div className="error-text">{errors.lastName}</div>}
+          
           <input
             type="email"
             placeholder="Email"
@@ -156,15 +122,18 @@ const Signup = () => {
             value={signupData.email}
             onChange={handleSignupChange}
           />
+          {errors.email && <div className="error-text">{errors.email}</div>}
+          
           <input
             type="password"
             placeholder="Password"
             className="input"
             name="password"
-            value={signupData.password}
             autoComplete="current-password"
             onChange={handleSignupChange}
           />
+          {errors.password && <div className="error-text">{errors.password}</div>}
+          
           <input
             type="password"
             placeholder="Confirm Password"
@@ -174,6 +143,10 @@ const Signup = () => {
             autoComplete="current-password"
             onChange={handleSignupChange}
           />
+          {errors.confirmpassword && <div className="error-text">{errors.confirmpassword}</div>}
+          
+          {errors.general && <div className="error-text">{errors.general}</div>}
+          
           <button className="button" onClick={handleSignup}>
             Signup
           </button>

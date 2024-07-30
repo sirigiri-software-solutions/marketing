@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ref, get } from "firebase/database";
 import { database } from "../Firebase";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import "./Login.css";
 
 const Login = () => {
@@ -12,30 +10,26 @@ const Login = () => {
     email: "",
     password: "",
   });
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const handleSignIn = () => {
     const { email, password } = signinData;
+    let formErrors = {};
 
-    const userRef = ref(database, "signupdata");
+    if (!email) formErrors.email = "Email is required";
+    if (!password) formErrors.password = "Password is required";
 
-    if (!email || !password) {
-      toast.error("Please fill in both email and password", {
-        position: "bottom-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
       return;
     }
+
+    const userRef = ref(database, "signupdata");
 
     get(userRef)
       .then((snapshot) => {
         const userData = snapshot.val();
-
         const user = Object.values(userData || {}).find(
           (user) => user.signupData && user.signupData.email === email
         );
@@ -45,52 +39,18 @@ const Login = () => {
 
           if (singleUserData.password === password) {
             localStorage.setItem("email", signinData.email);
-
-            toast.success("You are logged in successfully.", {
-              position: "bottom-right",
-              autoClose: 2000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            });
-            console.log("sucessfullly loggin")
-            
+            localStorage.setItem("firstName", singleUserData.firstName); // Save first name to localStorage
+            navigate("/Dashboardpage");
           } else {
-            toast.error("Password incorrect", {
-              position: "bottom-right",
-              autoClose: 2000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            });
+            setErrors({ password: "Password incorrect" });
           }
         } else {
-          toast.error("User does not exist", {
-            position: "bottom-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-          });
+          setErrors({ email: "User does not exist" });
         }
       })
       .catch((error) => {
         console.error("Error fetching user data:", error);
-        toast.error("Error fetching user data", {
-          position: "bottom-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
+        setErrors({ general: "Error fetching user data" });
       });
   };
 
@@ -99,6 +59,10 @@ const Login = () => {
     setSigninData((prevData) => ({
       ...prevData,
       [name]: value,
+    }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: "",
     }));
   };
 
@@ -113,6 +77,8 @@ const Login = () => {
             name="email"
             onChange={handleSigninChange}
           />
+          {errors.email && <div className="error-text">{errors.email}</div>}
+          
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Password"
@@ -121,6 +87,8 @@ const Login = () => {
             autoComplete="current-password"
             onChange={handleSigninChange}
           />
+          {errors.password && <div className="error-text">{errors.password}</div>}
+          
           <div className="show-password-container">
             <input
               type="checkbox"
@@ -129,6 +97,9 @@ const Login = () => {
             />
             <label>Show Password</label>
           </div>
+          
+          {errors.general && <div className="error-text">{errors.general}</div>}
+          
           <button className="button" onClick={handleSignIn}>
             Login
           </button>
