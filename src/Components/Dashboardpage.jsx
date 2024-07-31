@@ -21,11 +21,11 @@ const Dashboardpage = () => {
   const [errors, setErrors] = useState({});
   const [showForm, setShowForm] = useState(false);
   const [hostelData, setHostelData] = useState([]);
+  const [filter, setFilter] = useState(''); // State for filter
   const auth = getAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [userFirstName, setUserFirstName] = useState('');
-  const [isNewUser, setIsNewUser] = useState(false);
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('email');
@@ -42,7 +42,7 @@ const Dashboardpage = () => {
     }
 
     fetchHostelData();
-  }, []);
+  }, [userEmail, filter]); // Add filter to dependency array
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -125,13 +125,14 @@ const Dashboardpage = () => {
     }
   };
 
-  const fetchHostelData = async () => {
+  const fetchHostelData = () => {
     const hostelsRef = ref(database, 'hostels');
     onValue(hostelsRef, (snapshot) => {
       const data = snapshot.val();
       const hostels = data ? Object.values(data).filter(hostel => hostel.userEmail === userEmail) : [];
-      setHostelData(hostels);
-      setIsNewUser(hostels.length === 0);
+      // Filter based on selected option
+      const filteredHostels = filter ? hostels.filter(hostel => hostel.boardingType === filter) : hostels;
+      setHostelData(filteredHostels);
     });
   };
 
@@ -174,6 +175,41 @@ const Dashboardpage = () => {
       <button onClick={() => setShowForm(!showForm)}>
         {showForm ? "Cancel" : "Add Hostel"}
       </button>
+
+      {/* Radio Buttons for Filtering */}
+      <div className="filter-options">
+        <label>
+          <input
+            type="radio"
+            name="filter"
+            value=""
+            checked={filter === ''}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+          All
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="filter"
+            value="OnBoarding"
+            checked={filter === 'OnBoarding'}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+          Onboarding
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="filter"
+            value="Visiting"
+            checked={filter === 'Visiting'}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+          Visiting
+        </label>
+      </div>
+
       {showForm && (
         <form className="hostel-form" onSubmit={handleFormSubmit}>
           <input
@@ -231,7 +267,7 @@ const Dashboardpage = () => {
           >              
             <option value="">Select..</option> 
             <option value="OnBoarding">Onboarding</option>
-            <option value="visiting">Visiting</option>
+            <option value="Visiting">Visiting</option>
           </select>
           {errors.boardingType && <div className="error-text">{errors.boardingType}</div>}
 
@@ -269,19 +305,23 @@ const Dashboardpage = () => {
       )}
 
       <div className="hostel-list">
-        {hostelData.map((hostel, index) => (
-          <div key={index} className="hostel-item">
-            <h2>{hostel.hostelName}</h2>
-            <p>Owner: {hostel.hostelOwner}</p>
-            <p>Contact: {hostel.hostelOwnerContact}</p>
+        {hostelData.length > 0 ? (
+          hostelData.map((hostel, index) => (
+            <div key={index} className="hostel-item">
+              <h2>{hostel.hostelName}</h2>
+              <p>Owner: {hostel.hostelOwner}</p>
+              <p>Contact: {hostel.hostelOwnerContact}</p>
             <p>Location: {hostel.hostelLocation}</p>
-            <p>Boarding Type: {hostel.boardingType}</p>
-            <p>Boarding Time: {hostel.boardingTime}</p>
+              <p>Boarding Type: {hostel.boardingType}</p>
+              <p>Boarding Time: {hostel.boardingTime}</p>
             <p>Boarding Date: {hostel.boardingDate}</p>
             <p>Marketing Person: {hostel.marketingPerson}</p>
-            {hostel.hostelImages && <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" />}
-          </div>
-        ))}
+              {hostel.hostelImages && <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" />}
+            </div>
+          ))
+        ) : (
+          <p>No hostels available.</p>
+        )}
       </div>
     </div>
   );
