@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getAuth } from "firebase/auth";
 import { ref, set, push, onValue } from "firebase/database";
@@ -10,9 +9,12 @@ const Dashboardpage = () => {
   const [formData, setFormData] = useState({
     hostelName: '',
     hostelOwner: '',
+    hostelOwnerContact: '',
     hostelImages: null,
     hostelLocation: '',
     boardingType: '',
+    boardingTime: '',
+    boardingDate: '',
     marketingPerson: '', // This will be populated from local storage
   });
 
@@ -70,13 +72,16 @@ const Dashboardpage = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const { hostelName, hostelOwner, hostelImages, hostelLocation, boardingType, marketingPerson } = formData;
+    const { hostelName, hostelOwner, hostelOwnerContact, hostelImages, hostelLocation, boardingType, boardingTime, boardingDate, marketingPerson } = formData;
     let formErrors = {};
 
     if (!hostelName) formErrors.hostelName = "Hostel Name is required";
     if (!hostelOwner) formErrors.hostelOwner = "Hostel Owner is required";
+    if (!hostelOwnerContact) formErrors.hostelOwnerContact = "Contact Number is required";
     if (!hostelLocation) formErrors.hostelLocation = "Hostel Location is required";
     if (!boardingType) formErrors.boardingType = "Boarding Type is required";
+    if (!boardingTime) formErrors.boardingTime = "Boarding Time is required";
+    if (!boardingDate) formErrors.boardingDate = "Boarding Date is required";
     if (!marketingPerson) formErrors.marketingPerson = "Marketing Person is required";
 
     if (Object.keys(formErrors).length > 0) {
@@ -90,18 +95,24 @@ const Dashboardpage = () => {
       await set(newHostelRef, {
         hostelName,
         hostelOwner,
+        hostelOwnerContact,
         hostelImages, // Storing Base64 image string
         hostelLocation,
         boardingType,
+        boardingTime,
+        boardingDate,
         marketingPerson,
         userEmail,
       });
       setFormData({
         hostelName: '',
         hostelOwner: '',
+        hostelOwnerContact: '',
         hostelImages: null,
         hostelLocation: '',
         boardingType: '',
+        boardingTime: '',
+        boardingDate: '',
         marketingPerson: userFirstName,
       });
       fetchHostelData(); // Refresh hostel data
@@ -184,6 +195,15 @@ const Dashboardpage = () => {
           {errors.hostelOwner && <div className="error-text">{errors.hostelOwner}</div>}
           
           <input
+            type="text"
+            placeholder="Owner Contact Number"
+            name="hostelOwnerContact"
+            value={formData.hostelOwnerContact}
+            onChange={handleInputChange}
+          />
+          {errors.hostelOwnerContact && <div className="error-text">{errors.hostelOwnerContact}</div>}
+          
+          <input
             type="file"
             name="hostelImages"
             onChange={handleImageChange}
@@ -214,6 +234,22 @@ const Dashboardpage = () => {
             <option value="visiting">Visiting</option>
           </select>
           {errors.boardingType && <div className="error-text">{errors.boardingType}</div>}
+
+          <input
+            type="time"
+            name="boardingTime"
+            value={formData.boardingTime}
+            onChange={handleInputChange}
+          />
+          {errors.boardingTime && <div className="error-text">{errors.boardingTime}</div>}
+
+          <input
+            type="date"
+            name="boardingDate"
+            value={formData.boardingDate}
+            onChange={handleInputChange}
+          />
+          {errors.boardingDate && <div className="error-text">{errors.boardingDate}</div>}
           
           <input
             type="text"
@@ -237,8 +273,11 @@ const Dashboardpage = () => {
           <div key={index} className="hostel-item">
             <h2>{hostel.hostelName}</h2>
             <p>Owner: {hostel.hostelOwner}</p>
+            <p>Contact: {hostel.hostelOwnerContact}</p>
             <p>Location: {hostel.hostelLocation}</p>
             <p>Boarding Type: {hostel.boardingType}</p>
+            <p>Boarding Time: {hostel.boardingTime}</p>
+            <p>Boarding Date: {hostel.boardingDate}</p>
             <p>Marketing Person: {hostel.marketingPerson}</p>
             {hostel.hostelImages && <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" />}
           </div>
@@ -249,5 +288,3 @@ const Dashboardpage = () => {
 };
 
 export default Dashboardpage;
-
-
