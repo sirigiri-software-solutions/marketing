@@ -21,4 +21,8 @@
     max-width: 100px;
     height: auto;
   }
+  .filter-section{
+    display: flex;
+    justify-content: space-evenly;
+  }
   

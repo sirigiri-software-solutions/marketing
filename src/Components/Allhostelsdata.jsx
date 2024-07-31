@@ -1,10 +1,22 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { ref, onValue } from "firebase/database";
+import { format } from 'date-fns';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { database } from '../Firebase'; // Import the database instance
 import './Allhostelsdata.css'; // Import CSS for styling
 
 const Allhostelsdata = () => {
   const [hostels, setHostels] = useState([]);
+  const [filteredHostels, setFilteredHostels] = useState([]);
+  const [filters, setFilters] = useState({
+    marketingPerson: '',
+    boardingType: '',
+    hostelLocation: '',
+    boardingDate: null
+  });
 
   useEffect(() => {
     const fetchHostelData = () => {
@@ -13,15 +25,88 @@ const Allhostelsdata = () => {
         const data = snapshot.val();
         const hostelsList = data ? Object.values(data) : [];
         setHostels(hostelsList);
+        setFilteredHostels(hostelsList);
       });
     };
 
     fetchHostelData();
   }, []);
 
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [name]: value
+    }));
+  };
+
+  const handleDateChange = (date) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      boardingDate: date
+    }));
+  };
+
+  useEffect(() => {
+    const applyFilters = () => {
+      let filtered = hostels;
+      if (filters.marketingPerson) {
+        filtered = filtered.filter(hostel => hostel.marketingPerson.toLowerCase().includes(filters.marketingPerson.toLowerCase()));
+      }
+      if (filters.boardingType) {
+        filtered = filtered.filter(hostel => hostel.boardingType === filters.boardingType);
+      }
+      if (filters.hostelLocation) {
+        filtered = filtered.filter(hostel => hostel.hostelLocation.toLowerCase().includes(filters.hostelLocation.toLowerCase()));
+      }
+      if (filters.boardingDate) {
+        filtered = filtered.filter(hostel => {
+          const hostelDate = new Date(hostel.boardingDate);
+          return hostelDate.toDateString() === filters.boardingDate.toDateString();
+        });
+      }
+      setFilteredHostels(filtered);
+    };
+
+    applyFilters();
+  }, [filters, hostels]);
+
   return (
     <div className="all-hostels-container">
       <h1>All Hostels Data</h1>
+
+      {/* Filter Section */}
+      <div className="filter-section">
+        <input
+          type="text"
+          placeholder="Marketing Person"
+          name="marketingPerson"
+          value={filters.marketingPerson}
+          onChange={handleFilterChange}
+        />
+        <select
+          name="boardingType"
+          value={filters.boardingType}
+          onChange={handleFilterChange}
+        >
+          <option value="">All Boarding Types</option>
+          <option value="OnBoarding">OnBoarding</option>
+          <option value="Visiting">Visiting</option>
+        </select>
+        <input
+          type="text"
+          placeholder="Hostel Location"
+          name="hostelLocation"
+          value={filters.hostelLocation}
+          onChange={handleFilterChange}
+        />
+        <DatePicker
+          selected={filters.boardingDate}
+          onChange={handleDateChange}
+          placeholderText="Select Boarding Date"
+        />
+      </div>
+
       <table className="hostels-table">
         <thead>
           <tr>
@@ -29,18 +114,20 @@ const Allhostelsdata = () => {
             <th>Hostel Owner</th>
             <th>Hostel Location</th>
             <th>Boarding Type</th>
+            <th>Boarding Date</th>
             <th>Marketing Person</th>
             <th>Hostel Images</th>
           </tr>
         </thead>
         <tbody>
-          {hostels.length > 0 ? (
-            hostels.map((hostel, index) => (
+          {filteredHostels.length > 0 ? (
+            filteredHostels.map((hostel, index) => (
               <tr key={index}>
                 <td>{hostel.hostelName}</td>
                 <td>{hostel.hostelOwner}</td>
                 <td>{hostel.hostelLocation}</td>
                 <td>{hostel.boardingType}</td>
+                <td>{hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</td>
                 <td>{hostel.marketingPerson}</td>
                 <td>
                   {hostel.hostelImages ? (
@@ -53,7 +140,7 @@ const Allhostelsdata = () => {
             ))
           ) : (
             <tr>
-              <td colSpan="6">No data available</td>
+              <td colSpan="7">No data available</td>
             </tr>
           )}
         </tbody>
