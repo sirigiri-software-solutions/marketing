@@ -79,17 +79,20 @@ button:disabled {
 
 .location-field {
   position: relative;
+  display: flex; /* Use flexbox for better alignment */
+  align-items: center; /* Center items vertically */
 }
 
 .location-field input {
-  width: calc(100% - 40px); /* Adjust input width to make room for the button */
-  padding-right: 40px; /* Add padding to the right to make room for the icon */
+  flex: 1; /* Allow the input to grow and take available space */
+  padding-right: 40px; /* Adjust padding for the button */
 }
 
 .location-field button {
-  position: absolute;
+  position: absolute; /* Position button inside the container */
   right: 0;
-  top: 0;
+  top: 50%; /* Center vertically */
+  transform: translateY(-50%); /* Adjust position to center */
   height: 100%;
   border: none;
   background: none;
@@ -106,5 +109,3 @@ button:disabled {
   max-width: 100px;
   max-height: 100px;
 }
-
-

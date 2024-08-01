@@ -1,28 +1,80 @@
 .all-hostels-container {
-    padding: 20px;
-  }
-  
+  padding: 20px;
+}
+
+.hostels-table {
+  width: 100%;
+  border-collapse: collapse;
+  display: none; /* Hide table on mobile */
+}
+
+.hostels-table th, .hostels-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.hostels-table th {
+  background-color: #f2f2f2;
+}
+
+.hostel-image {
+  max-width: 100px;
+  height: auto;
+}
+
+.hostels-cards {
+  display: none; /* Hide cards on desktop */
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.hostel-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  width: 100%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hostel-card h2 {
+  margin-top: 0;
+}
+
+.hostel-card p {
+  margin: 4px 0;
+}
+
+.hostel-image-container {
+  margin-top: 16px;
+}
+
+@media (min-width: 769px) {
   .hostels-table {
+    display: table; /* Show table on larger screens */
+  }
+
+  .hostels-cards {
+    display: none; /* Hide cards on larger screens */
+  }
+}
+
+@media (max-width: 768px) {
+  .hostels-cards {
+    display: flex; /* Show cards on mobile */
+  }
+
+  .hostels-table {
+    display: none; /* Hide table on mobile */
+  }
+
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-section > * {
+    margin-bottom: 10px;
     width: 100%;
-    border-collapse: collapse;
   }
-  
-  .hostels-table th, .hostels-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-  }
-  
-  .hostels-table th {
-    background-color: #f2f2f2;
-  }
-  
-  .hostel-image {
-    max-width: 100px;
-    height: auto;
-  }
-  .filter-section{
-    display: flex;
-    justify-content: space-evenly;
-  }
-  
+}
