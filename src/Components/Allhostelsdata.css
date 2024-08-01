@@ -5,6 +5,7 @@
   .hostels-table {
     width: 100%;
     border-collapse: collapse;
+    display: none; /* Hide table on mobile */
   }
   
   .hostels-table th, .hostels-table td {
@@ -23,7 +24,7 @@
   }
   
   .hostels-cards {
-    display: flex;
+    display: none; /* Hide cards on desktop */
     flex-wrap: wrap;
     gap: 16px;
   }
@@ -49,8 +50,32 @@
   }
   
   @media (min-width: 769px) {
-    .hostel-card {
-      width: calc(33.333% - 32px);
+    .hostels-table {
+      display: table; /* Show table on larger screens */
+    }
+  
+    .hostels-cards {
+      display: none; /* Hide cards on larger screens */
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .hostels-cards {
+      display: flex; /* Show cards on mobile */
+    }
+  
+    .hostels-table {
+      display: none; /* Hide table on mobile */
+    }
+  
+    .filter-section {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .filter-section > * {
+      margin-bottom: 10px;
+      width: 100%;
     }
   }
   
