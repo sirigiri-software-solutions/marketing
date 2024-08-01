@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ref, get } from "firebase/database";
@@ -26,6 +27,7 @@ const Login = () => {
     }
 
     const userRef = ref(database, "signupdata");
+    
 
     get(userRef)
       .then((snapshot) => {
