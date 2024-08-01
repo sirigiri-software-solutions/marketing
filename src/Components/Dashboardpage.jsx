@@ -22,8 +22,6 @@ const Dashboardpage = () => {
   const [showForm, setShowForm] = useState(false);
   const [hostelData, setHostelData] = useState([]);
   const [filter, setFilter] = useState(''); // State for filter
-  const [startDate, setStartDate] = useState(''); // State for start date filter
-  const [endDate, setEndDate] = useState(''); // State for end date filter
   const auth = getAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userEmail, setUserEmail] = useState('');
@@ -44,7 +42,7 @@ const Dashboardpage = () => {
     }
 
     fetchHostelData();
-  }, [userEmail, filter, startDate, endDate]); // Add startDate and endDate to dependency array
+  }, [userEmail, filter]); // Add filter to dependency array
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -131,22 +129,10 @@ const Dashboardpage = () => {
     const hostelsRef = ref(database, 'hostels');
     onValue(hostelsRef, (snapshot) => {
       const data = snapshot.val();
-      let hostels = data ? Object.values(data).filter(hostel => hostel.userEmail === userEmail) : [];
-
-      // Filter based on selected boarding type
-      if (filter) {
-        hostels = hostels.filter(hostel => hostel.boardingType === filter);
-      }
-
-      // Filter based on selected date range
-      if (startDate) {
-        hostels = hostels.filter(hostel => new Date(hostel.boardingDate) >= new Date(startDate));
-      }
-      if (endDate) {
-        hostels = hostels.filter(hostel => new Date(hostel.boardingDate) <= new Date(endDate));
-      }
-
-      setHostelData(hostels);
+      const hostels = data ? Object.values(data).filter(hostel => hostel.userEmail === userEmail) : [];
+      // Filter based on selected option
+      const filteredHostels = filter ? hostels.filter(hostel => hostel.boardingType === filter) : hostels;
+      setHostelData(filteredHostels);
     });
   };
 
@@ -224,26 +210,6 @@ const Dashboardpage = () => {
         </label>
       </div>
 
-      {/* Date Range Filter */}
-      <div className="date-filter">
-        <label>
-          Start Date:
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </label>
-        <label>
-          End Date:
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </label>
-      </div>
-
       {showForm && (
         <form className="hostel-form" onSubmit={handleFormSubmit}>
           <input
@@ -263,24 +229,22 @@ const Dashboardpage = () => {
             onChange={handleInputChange}
           />
           {errors.hostelOwner && <div className="error-text">{errors.hostelOwner}</div>}
-
+          
           <input
             type="text"
-            placeholder="Contact Number"
+            placeholder="Owner Contact Number"
             name="hostelOwnerContact"
             value={formData.hostelOwnerContact}
             onChange={handleInputChange}
           />
           {errors.hostelOwnerContact && <div className="error-text">{errors.hostelOwnerContact}</div>}
-
+          
           <input
             type="file"
-            accept="image/*"
             name="hostelImages"
             onChange={handleImageChange}
           />
-          {errors.hostelImages && <div className="error-text">{errors.hostelImages}</div>}
-
+          
           <div className="location-field">
             <input
               type="text"
@@ -289,18 +253,22 @@ const Dashboardpage = () => {
               value={formData.hostelLocation}
               onChange={handleInputChange}
             />
-            <div><button type="button" onClick={handleFetchLocation}>
+            </div>
+            <div>
+            <button type="button" onClick={handleFetchLocation}>
               <i className="fas fa-location-arrow"></i> {/* Location icon */}
-            </button></div>
-          </div>
+            </button>
+            
           {errors.hostelLocation && <div className="error-text">{errors.hostelLocation}</div>}
-
+          </div>
+          
+          <label>Type Of Boarding</label>
           <select
             name="boardingType"
             value={formData.boardingType}
             onChange={handleInputChange}
-          >
-            <option value="">Select Boarding Type</option>
+          >              
+            <option value="">Select..</option> 
             <option value="OnBoarding">Onboarding</option>
             <option value="Visiting">Visiting</option>
           </select>
@@ -308,7 +276,6 @@ const Dashboardpage = () => {
 
           <input
             type="time"
-            placeholder="Boarding Time"
             name="boardingTime"
             value={formData.boardingTime}
             onChange={handleInputChange}
@@ -317,17 +284,23 @@ const Dashboardpage = () => {
 
           <input
             type="date"
-            placeholder="Boarding Date"
             name="boardingDate"
             value={formData.boardingDate}
             onChange={handleInputChange}
           />
           {errors.boardingDate && <div className="error-text">{errors.boardingDate}</div>}
-
-         
-
+          
+          <input
+            type="text"
+            placeholder="Marketing Person"
+            name="marketingPerson"
+            value={formData.marketingPerson}
+            disabled
+          />
+          {errors.marketingPerson && <div className="error-text">{errors.marketingPerson}</div>}
+          
           {errors.general && <div className="error-text">{errors.general}</div>}
-
+          
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Submitting..." : "Submit"}
           </button>
@@ -335,22 +308,22 @@ const Dashboardpage = () => {
       )}
 
       <div className="hostel-list">
-        <h2>Your Hostels</h2>
         {hostelData.length > 0 ? (
           hostelData.map((hostel, index) => (
             <div key={index} className="hostel-item">
-              <h3>{hostel.hostelName}</h3>
+              <h2>{hostel.hostelName}</h2>
               <p>Owner: {hostel.hostelOwner}</p>
               <p>Contact: {hostel.hostelOwnerContact}</p>
-              <p>Location: {hostel.hostelLocation}</p>
+            <p>Location: {hostel.hostelLocation}</p>
               <p>Boarding Type: {hostel.boardingType}</p>
               <p>Boarding Time: {hostel.boardingTime}</p>
-              <p>Boarding Date: {hostel.boardingDate}</p>
-              {hostel.hostelImages && <img src={hostel.hostelImages} alt="Hostel"  height="100px" width="100px"/>}
+            <p>Boarding Date: {hostel.boardingDate}</p>
+            <p>Marketing Person: {hostel.marketingPerson}</p>
+              {hostel.hostelImages && <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" />}
             </div>
           ))
         ) : (
-          <p>No hostels found.</p>
+          <p>No hostels available.</p>
         )}
       </div>
     </div>
@@ -358,3 +331,5 @@ const Dashboardpage = () => {
 };
 
 export default Dashboardpage;
+
+

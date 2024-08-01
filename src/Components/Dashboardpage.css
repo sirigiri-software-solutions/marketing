@@ -75,24 +75,21 @@ button:disabled {
   font-size: 14px;
 }
 
-/* Add the following CSS to position the location icon inside the input field */
+ /* Add the following CSS to position the location icon inside the input field  */
 
-.location-field {
+ .location-field {
   position: relative;
-  display: flex; /* Use flexbox for better alignment */
-  align-items: center; /* Center items vertically */
 }
 
 .location-field input {
-  flex: 1; /* Allow the input to grow and take available space */
-  padding-right: 40px; /* Adjust padding for the button */
+  width: calc(80% - 40px); /* Adjust input width to make room for the button */
+   padding-right: 40px;  
 }
 
 .location-field button {
-  position: absolute; /* Position button inside the container */
+  position: absolute;
   right: 0;
-  top: 50%; /* Center vertically */
-  transform: translateY(-50%); /* Adjust position to center */
+  top: 0;
   height: 100%;
   border: none;
   background: none;
@@ -103,9 +100,18 @@ button:disabled {
 
 .location-field button i {
   color: #555; /* You can adjust the color of the icon */
-}
+ }
+ /* .fas{
+  color: #555;
+ } */
 
 .hostel-image {
   max-width: 100px;
   max-height: 100px;
-}
+}  
+/* .fa-location-arrow{
+  position: relative-fixed;
+
+} */
+
+
