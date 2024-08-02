@@ -1,117 +1,102 @@
-
-
 .dashboard-container {
   padding: 20px;
-  background-color: #f9f9f9;
 }
 
-.dashboard-container h1 {
-  font-size: 24px;
+.button-addhostel {
   margin-bottom: 20px;
 }
 
-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  margin-bottom: 20px;
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 5px;
+  width: 80%;
+  max-width: 600px;
+  position: relative;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   cursor: pointer;
-  font-size: 16px;
-  border-radius: 4px;
-}
-
-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
+  font-size: 20px;
 }
 
 .hostel-form {
-  background-color: white;
-  border: 1px solid #dddddd;
-  padding: 20px;
-  border-radius: 4px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
-.hostel-form input[type="text"],
-.hostel-form input[type="file"] {
-  display: block;
-  width: 100%;
-  padding: 10px;
+.hostel-form input, .hostel-form select, .hostel-form button {
   margin-bottom: 10px;
-  border: 1px solid #dddddd;
-  border-radius: 4px;
 }
 
 .error-text {
   color: red;
-  font-size: 12px;
-  margin-bottom: 20px;
-  margin-top: 20px;
-}
-
-.hostel-list {
-  margin-top: 20px;
-}
-
-.hostel-item {
-  background-color: white;
-  border: 1px solid #dddddd;
-  padding: 20px;
   margin-bottom: 10px;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.hostel-item h2 {
-  margin: 0 0 10px;
-  font-size: 18px;
-}
-
-.hostel-item p {
-  margin: 5px 0;
-  font-size: 14px;
-}
-
- /* Add the following CSS to position the location icon inside the input field  */
-
- .location-field {
-  position: relative;
-}
-
-.location-field input {
-  width: calc(80% - 40px); /* Adjust input width to make room for the button */
-   padding-right: 40px;  
+.location-field {
+  display: flex;
+  align-items: center;
 }
 
 .location-field button {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
+  margin-left: 10px;
+  background: #007bff;
+  color: white;
   border: none;
-  background: none;
-  padding: 0 10px;
+  padding: 5px 10px;
   cursor: pointer;
-  font-size: 18px;
 }
 
-.location-field button i {
-  color: #555; /* You can adjust the color of the icon */
- }
- /* .fas{
-  color: #555;
- } */
+.filter-container {
+  margin-bottom: 20px;
+}
+
+.filter-options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-item p {
+  margin: 0;
+  margin-bottom: 5px;
+}
+
+.hostel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hostel-card {
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 5px;
+}
 
 .hostel-image {
-  max-width: 100px;
-  max-height: 100px;
-}  
-/* .fa-location-arrow{
-  position: relative-fixed;
-
-} */
-
-
+  max-width: 100%;
+  height: auto;
+}
