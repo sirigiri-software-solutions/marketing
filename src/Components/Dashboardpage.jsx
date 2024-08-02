@@ -186,171 +186,160 @@ const Dashboardpage = () => {
   return (
     <div className="dashboard-container">
       <h1>Welcome, {userFirstName}</h1>
-      <button onClick={() => setShowForm(!showForm)}>
-        {showForm ? "Cancel" : "Add Hostel"}
+      <button onClick={() => setShowForm(true)} className='button-addhostel'>
+        Add Hostel
       </button>
 
-      {/* Radio Buttons for Filtering */}
-      <div className="filter-options">
-        <label>
-          <input
-            type="radio"
-            name="filter"
-            value=""
-            checked={filter === ''}
-            onChange={(e) => setFilter(e.target.value)}
-          />
-          All
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="filter"
-            value="OnBoarding"
-            checked={filter === 'OnBoarding'}
-            onChange={(e) => setFilter(e.target.value)}
-          />
-          Onboarding
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="filter"
-            value="Visiting"
-            checked={filter === 'Visiting'}
-            onChange={(e) => setFilter(e.target.value)}
-          />
-          Visiting
-        </label>
-      </div>
-
-      {/* Date Range Filter */}
-      <div className="date-filter">
-        <label>
-          Start Date:
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </label>
-        <label>
-          End Date:
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </label>
-      </div>
-
+      {/* Modal for the form */}
       {showForm && (
-        <form className="hostel-form" onSubmit={handleFormSubmit}>
-          <input
-            type="text"
-            placeholder="Hostel Name"
-            name="hostelName"
-            value={formData.hostelName}
-            onChange={handleInputChange}
-          />
-          {errors.hostelName && <div className="error-text">{errors.hostelName}</div>}
-          
-          <input
-            type="text"
-            placeholder="Hostel Owner"
-            name="hostelOwner"
-            value={formData.hostelOwner}
-            onChange={handleInputChange}
-          />
-          {errors.hostelOwner && <div className="error-text">{errors.hostelOwner}</div>}
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={() => setShowForm(false)}>&times;</span>
+            <form className="hostel-form" onSubmit={handleFormSubmit}>
+              <input
+                type="text"
+                placeholder="Hostel Name"
+                name="hostelName"
+                value={formData.hostelName}
+                onChange={handleInputChange}
+              />
+              {errors.hostelName && <div className="error-text">{errors.hostelName}</div>}
+              
+              <input
+                type="text"
+                placeholder="Hostel Owner"
+                name="hostelOwner"
+                value={formData.hostelOwner}
+                onChange={handleInputChange}
+              />
+              {errors.hostelOwner && <div className="error-text">{errors.hostelOwner}</div>}
 
-          <input
-            type="text"
-            placeholder="Contact Number"
-            name="hostelOwnerContact"
-            value={formData.hostelOwnerContact}
-            onChange={handleInputChange}
-          />
-          {errors.hostelOwnerContact && <div className="error-text">{errors.hostelOwnerContact}</div>}
+              <input
+                type="text"
+                placeholder="Contact Number"
+                name="hostelOwnerContact"
+                value={formData.hostelOwnerContact}
+                onChange={handleInputChange}
+              />
+              {errors.hostelOwnerContact && <div className="error-text">{errors.hostelOwnerContact}</div>}
 
-          <input
-            type="file"
-            accept="image/*"
-            name="hostelImages"
-            onChange={handleImageChange}
-          />
-          {errors.hostelImages && <div className="error-text">{errors.hostelImages}</div>}
+              <input
+                type="file"
+                accept="image/*"
+                name="hostelImages"
+                onChange={handleImageChange}
+              />
+              {errors.hostelImages && <div className="error-text">{errors.hostelImages}</div>}
 
-          <div className="location-field">
-            <input
-              type="text"
-              placeholder="Hostel Location"
-              name="hostelLocation"
-              value={formData.hostelLocation}
-              onChange={handleInputChange}
-            />
-            <button type="button" onClick={handleFetchLocation}>
-              <i className="fas fa-location-arrow"></i> {/* Location icon */}
-            </button>
+              <div className="location-field">
+                <input
+                  type="text"
+                  placeholder="Hostel Location"
+                  name="hostelLocation"
+                  value={formData.hostelLocation}
+                  onChange={handleInputChange}
+                />
+                <button type="button" onClick={handleFetchLocation}>
+                  <i className="fas fa-location-arrow"></i> {/* Location icon */}
+                </button>
+              </div>
+              {errors.hostelLocation && <div className="error-text">{errors.hostelLocation}</div>}
+
+              <select
+                name="boardingType"
+                value={formData.boardingType}
+                onChange={handleInputChange}
+              >
+                <option value="Select Boarding Type">Select Boarding Type</option>
+                <option value="Onboarding">Onboarding</option>
+                <option value="Visiting">Visiting</option>
+              </select>
+              {errors.boardingType && <div className="error-text">{errors.boardingType}</div>}
+
+              <input
+                type="time"
+                placeholder="Boarding Time"
+                name="boardingTime"
+                value={formData.boardingTime}
+                onChange={handleInputChange}
+              />
+              {errors.boardingTime && <div className="error-text">{errors.boardingTime}</div>}
+
+              <input
+                type="date"
+                placeholder="Boarding Date"
+                name="boardingDate"
+                value={formData.boardingDate}
+                onChange={handleInputChange}
+              />
+              {errors.boardingDate && <div className="error-text">{errors.boardingDate}</div>}
+
+              <input
+                type="text"
+                placeholder="Marketing Person"
+                name="marketingPerson"
+                value={formData.marketingPerson}
+                onChange={handleInputChange}
+                disabled
+              />
+
+              <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting...' : 'Submit'}
+              </button>
+              {errors.general && <div className="error-text">{errors.general}</div>}
+            </form>
           </div>
-          {errors.hostelLocation && <div className="error-text">{errors.hostelLocation}</div>}
-
-          <select
-            name="boardingType"
-            value={formData.boardingType}
-            onChange={handleInputChange}
-          >
-            <option value="">Select Boarding Type</option>
-            <option value="OnBoarding">Onboarding</option>
-            <option value="Visiting">Visiting</option>
-          </select>
-          {errors.boardingType && <div className="error-text">{errors.boardingType}</div>}
-
-          <input
-            type="time"
-            placeholder="Boarding Time"
-            name="boardingTime"
-            value={formData.boardingTime}
-            onChange={handleInputChange}
-          />
-          {errors.boardingTime && <div className="error-text">{errors.boardingTime}</div>}
-
-          <input
-            type="date"
-            placeholder="Boarding Date"
-            name="boardingDate"
-            value={formData.boardingDate}
-            onChange={handleInputChange}
-          />
-          {errors.boardingDate && <div className="error-text">{errors.boardingDate}</div>}
-
-         
-
-          {errors.general && <div className="error-text">{errors.general}</div>}
-
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Submit"}
-          </button>
-        </form>
+        </div>
       )}
 
+      <div className="filter-container">
+        <div className="filter-options">
+          <div className='filter-item'>
+            <p>Select Category Type:</p>
+            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+              <option value="">All</option>
+              <option value="Onboarding">Onboarding</option>
+              <option value="Visiting">Visiting</option>
+            </select>
+          </div>
+          <div className='filter-item'>
+            <p>Start Date:</p>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              placeholder="Start Date"
+            />
+          </div>
+          <div className='filter-item'>
+            <p>End Date:</p>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              placeholder="End Date"
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="hostel-list">
-        <h2>Your Hostels</h2>
         {hostelData.length > 0 ? (
           hostelData.map((hostel, index) => (
-            <div key={index} className="hostel-item">
-              <h3>{hostel.hostelName}</h3>
+            <div key={index} className="hostel-card">
+              <h2>{hostel.hostelName}</h2>
               <p>Owner: {hostel.hostelOwner}</p>
               <p>Contact: {hostel.hostelOwnerContact}</p>
               <p>Location: {hostel.hostelLocation}</p>
-              <p>Boarding Type: {hostel.boardingType}</p>
-              <p>Boarding Time: {hostel.boardingTime}</p>
-              <p>Boarding Date: {hostel.boardingDate}</p>
-              {hostel.hostelImages && <img src={hostel.hostelImages} alt="Hostel"  height="100px" width="100px"/>}
+              <p>Type: {hostel.boardingType}</p>
+              <p>Time: {hostel.boardingTime}</p>
+              <p>Date: {hostel.boardingDate}</p>
+              <p>Marketing Person: {hostel.marketingPerson}</p>
+              {hostel.hostelImages && <img src={hostel.hostelImages} alt="Hostel" className="hostel-image"  height="100px" width="100px"/>}
             </div>
           ))
         ) : (
-          <p>No hostels found.</p>
+          <p>No hostels found</p>
         )}
       </div>
     </div>
