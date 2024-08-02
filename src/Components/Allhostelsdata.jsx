@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ref, onValue } from "firebase/database";
 import { format } from 'date-fns';
@@ -109,46 +110,48 @@ const Allhostelsdata = () => {
       </div>
 
       {/* Table for larger screens */}
-      <table className="hostels-table">
-        <thead>
-          <tr>
-            <th>Hostel Name</th>
-            <th>Hostel Owner</th>
-            <th>Hostel Location</th>
-            <th>Contact Number</th>
-            <th>Boarding Type</th>
-            <th>Boarding Date</th>
-            <th>Marketing Person</th>
-            <th>Hostel Images</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredHostels.length > 0 ? (
-            filteredHostels.map((hostel, index) => (
-              <tr key={index}>
-                <td>{hostel.hostelName}</td>
-                <td>{hostel.hostelOwner}</td>
-                <td>{hostel.hostelLocation}</td>
-                <td>{hostel.hostelOwnerContact}</td>
-                <td>{hostel.boardingType}</td>
-                <td>{hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</td>
-                <td>{hostel.marketingPerson}</td>
-                <td>
-                  {hostel.hostelImages ? (
-                    <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" />
-                  ) : (
-                    'No Image'
-                  )}
-                </td>
-              </tr>
-            ))
-          ) : (
+      <div className="hostels-table-wrapper">
+        <table className="hostels-table">
+          <thead>
             <tr>
-              <td colSpan="7">No data available</td>
+              <th>Hostel Name</th>
+              <th>Hostel Owner</th>
+              <th>Hostel Location</th>
+              <th>Contact Number</th>
+              <th>Boarding Type</th>
+              <th>Boarding Date</th>
+              <th>Marketing Person</th>
+              <th>Hostel Images</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredHostels.length > 0 ? (
+              filteredHostels.map((hostel, index) => (
+                <tr key={index}>
+                  <td>{hostel.hostelName}</td>
+                  <td>{hostel.hostelOwner}</td>
+                  <td>{hostel.hostelLocation}</td>
+                  <td>{hostel.hostelOwnerContact}</td>
+                  <td>{hostel.boardingType}</td>
+                  <td>{hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</td>
+                  <td>{hostel.marketingPerson}</td>
+                  <td>
+                    {hostel.hostelImages ? (
+                      <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" />
+                    ) : (
+                      'No Image'
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="8">No data available</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Card layout for smaller screens */}
       <div className="hostels-cards">
@@ -159,7 +162,6 @@ const Allhostelsdata = () => {
               <p><strong>Owner:</strong> {hostel.hostelOwner}</p>
               <p><strong>Location:</strong> {hostel.hostelLocation}</p>
               <p><strong>Contact Number:</strong> {hostel.hostelOwnerContact}</p>
-            
               <p><strong>Type:</strong> {hostel.boardingType}</p>
               <p><strong>Date:</strong> {hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</p>
               <p><strong>Marketing Person:</strong> {hostel.marketingPerson}</p>
