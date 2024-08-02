@@ -1,11 +1,49 @@
 .all-hostels-container {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.filter-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 1200px;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-section > * {
+  flex: 1;
+  min-width: 200px;
+}
+
+.hostels-table-wrapper {
+  width: 100%;
+  max-width: 1200px;
+  max-height: 60vh; /* Adjust height as needed */
+  overflow-y: auto;
+  position: relative;
 }
 
 .hostels-table {
   width: 100%;
   border-collapse: collapse;
-  display: none; /* Hide table on mobile */
+}
+
+.hostels-table thead {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 5;
 }
 
 .hostels-table th, .hostels-table td {
