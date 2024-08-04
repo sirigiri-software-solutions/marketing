@@ -61,3 +61,7 @@ body {
     margin-bottom: 0.5rem;
     text-align: left; /* Align error messages to the left */
   }
+  .admin-checkbox {
+    margin-top: 1rem;
+    text-align: left; /* Align checkbox label to the left */
+}

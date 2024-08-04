@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ref, get } from "firebase/database";
@@ -27,7 +26,6 @@ const Login = () => {
     }
 
     const userRef = ref(database, "signupdata");
-    
 
     get(userRef)
       .then((snapshot) => {
@@ -42,7 +40,13 @@ const Login = () => {
           if (singleUserData.password === password) {
             localStorage.setItem("email", signinData.email);
             localStorage.setItem("firstName", singleUserData.firstName); // Save first name to localStorage
-            navigate("/Dashboardpage");
+
+            // Navigate based on isAdmin status
+            if (singleUserData.isAdmin) {
+              navigate("/AllHostelsData"); // Navigate to all hostels data if admin
+            } else {
+              navigate("/Dashboardpage"); // Navigate to dashboard if not admin
+            }
           } else {
             setErrors({ password: "Password incorrect" });
           }

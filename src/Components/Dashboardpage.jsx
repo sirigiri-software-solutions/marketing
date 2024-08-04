@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getAuth } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth"; // Import signOut
 import { ref, set, push, onValue } from "firebase/database";
 import { database } from '../Firebase'; // Import the database instance
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import './Dashboardpage.css';
 import '@fortawesome/fontawesome-free/css/all.min.css'; // Import Font Awesome
 
@@ -28,6 +29,7 @@ const Dashboardpage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [userFirstName, setUserFirstName] = useState('');
+  const navigate = useNavigate(); // Initialize useNavigate
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('email');
@@ -183,12 +185,31 @@ const Dashboardpage = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign out the user
+      localStorage.removeItem('email'); // Remove email from local storage
+      localStorage.removeItem('firstName'); // Remove first name from local storage
+      navigate("/"); // Redirect to Login page
+    } catch (error) {
+      console.error("Error signing out: ", error);
+    }
+  };
+
   return (
     <div className="dashboard-container">
-      <h1>Welcome, {userFirstName}</h1>
-      <button onClick={() => setShowForm(true)} className='button-addhostel'>
-        Add Hostel
-      </button>
+      {/* Sticky header with welcome message and add hostel button */}
+      <div className="sticky-header">
+        <div className="welcome-message">
+          <h1>Welcome, {userFirstName}</h1>
+        </div>
+        <button onClick={() => setShowForm(true)} className="button-addhostel">
+          Add Hostel
+        </button>
+        <button onClick={handleLogout} className="button-logout">
+          Logout
+        </button>
+      </div>
 
       {/* Modal for the form */}
       {showForm && (
@@ -204,7 +225,7 @@ const Dashboardpage = () => {
                 onChange={handleInputChange}
               />
               {errors.hostelName && <div className="error-text">{errors.hostelName}</div>}
-              
+
               <input
                 type="text"
                 placeholder="Hostel Owner"
@@ -335,7 +356,7 @@ const Dashboardpage = () => {
               <p>Time: {hostel.boardingTime}</p>
               <p>Date: {hostel.boardingDate}</p>
               <p>Marketing Person: {hostel.marketingPerson}</p>
-              {hostel.hostelImages && <img src={hostel.hostelImages} alt="Hostel" className="hostel-image"  height="100px" width="100px"/>}
+              {hostel.hostelImages && <img src={hostel.hostelImages} alt="Hostel" className="hostel-image" height="100px" width="100px" />}
             </div>
           ))
         ) : (

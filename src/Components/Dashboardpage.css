@@ -1,9 +1,38 @@
 .dashboard-container {
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Full viewport height */
 }
 
-.button-addhostel {
-  margin-bottom: 20px;
+.sticky-header {
+  position: sticky;
+  top: 0;
+  background-color: white; /* Background color for better visibility */
+  z-index: 1; /* Ensure it appears above the rest of the content */
+  padding: 10px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Optional: add a subtle shadow for separation */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.welcome-message h1 {
+  margin: 0;
+}
+
+.button-addhostel, .button-logout {
+  margin: 0 10px;
+  padding: 10px 20px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.button-addhostel:hover, .button-logout:hover {
+  background-color: #0056b3;
 }
 
 .modal {
@@ -64,7 +93,7 @@
 }
 
 .filter-container {
-  margin-bottom: 20px;
+  margin: 20px;
 }
 
 .filter-options {
@@ -85,9 +114,8 @@
 }
 
 .hostel-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  flex-grow: 1; /* Allow the list to expand and take remaining space */
+  overflow-y: auto; /* Enable vertical scrolling */
 }
 
 .hostel-card {
@@ -99,4 +127,16 @@
 .hostel-image {
   max-width: 100%;
   height: auto;
+}
+
+/* Responsive styling for mobile view */
+@media (max-width: 600px) {
+  .filter-options {
+    flex-direction: column;
+  }
+
+  .filter-item {
+    width: 100%;
+    margin-bottom: 10px;
+  }
 }

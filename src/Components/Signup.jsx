@@ -14,6 +14,7 @@ const Signup = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [isAdmin, setIsAdmin] = useState(false); // State for admin checkbox
   const navigate = useNavigate();
 
   const handleSignup = () => {
@@ -52,7 +53,7 @@ const Signup = () => {
         } else {
           const newUserRef = push(userRef);
           set(newUserRef, {
-            signupData: { firstName, lastName, email, password },
+            signupData: { firstName, lastName, email, password, isAdmin }, // Save isAdmin status
           })
             .then(() => {
               localStorage.setItem("firstName", firstName); // Save first name to localStorage
@@ -63,8 +64,7 @@ const Signup = () => {
                 password: "",
                 confirmpassword: "",
               });
-              setErrors({});
-              // navigate("/Dashboardpage"); // Navigate to the dashboard after successful signup
+              
             })
             .catch((error) => {
               console.error("Error adding user data:", error);
@@ -88,6 +88,10 @@ const Signup = () => {
       ...prevErrors,
       [name]: "",
     }));
+  };
+
+  const handleAdminChange = (e) => {
+    setIsAdmin(e.target.checked); // Update isAdmin based on checkbox
   };
 
   return (
@@ -147,6 +151,17 @@ const Signup = () => {
           
           {errors.general && <div className="error-text">{errors.general}</div>}
           
+          <div className="admin-checkbox">
+            <label>
+              <input
+                type="checkbox"
+                checked={isAdmin}
+                onChange={handleAdminChange}
+              />
+              Admin
+            </label>
+          </div>
+
           <button className="button" onClick={handleSignup}>
             Signup
           </button>
