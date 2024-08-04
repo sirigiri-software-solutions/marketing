@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
-import { ref, onValue } from "firebase/database";
+import { ref, onValue } from 'firebase/database';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { database } from '../Firebase';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import './Allhostelsdata.css';
 
 const Allhostelsdata = () => {
@@ -16,6 +16,7 @@ const Allhostelsdata = () => {
     hostelLocation: '',
     boardingDate: null,
   });
+  const navigate = useNavigate(); // Initialize useNavigate
 
   useEffect(() => {
     const fetchHostelData = () => {
@@ -74,8 +75,17 @@ const Allhostelsdata = () => {
     applyFilters();
   }, [filters, hostels]);
 
+  const handleLogout = () => {
+    // Handle logout logic here (e.g., clearing tokens, etc.)
+    // Navigate to the login page
+    navigate('/');
+  };
+
   return (
     <div className="all-hostels-container">
+      <button className="logout-button" onClick={handleLogout}>
+        Logout
+      </button>
       <h1>All Hostels Data</h1>
 
       <div className="filter-section">
