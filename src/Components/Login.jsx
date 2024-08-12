@@ -41,8 +41,10 @@ const Login = () => {
             localStorage.setItem("email", signinData.email);
             localStorage.setItem("firstName", singleUserData.firstName); // Save first name to localStorage
 
-            // Navigate based on isAdmin status
-            if (singleUserData.isAdmin) {
+            // Navigate based on user role
+            if (singleUserData.isSuperAdmin) {
+              navigate("/MainAdmin"); // Navigate to main admin page if SuperAdmin
+            } else if (singleUserData.isAdmin) {
               navigate("/AllHostelsData"); // Navigate to all hostels data if admin
             } else {
               navigate("/Dashboardpage"); // Navigate to dashboard if not admin
@@ -81,6 +83,7 @@ const Login = () => {
             placeholder="Email"
             className="input"
             name="email"
+            value={signinData.email}
             onChange={handleSigninChange}
           />
           {errors.email && <div className="error-text">{errors.email}</div>}
@@ -91,6 +94,7 @@ const Login = () => {
             className="input"
             name="password"
             autoComplete="current-password"
+            value={signinData.password}
             onChange={handleSigninChange}
           />
           {errors.password && <div className="error-text">{errors.password}</div>}
