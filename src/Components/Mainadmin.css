@@ -1,0 +1,189 @@
+.all-hostels-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+  
+  .filter-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 1200px;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .filter-section > * {
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .hostels-table-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    max-height: 60vh; /* Adjust height as needed */
+    overflow-y: auto;
+    position: relative;
+  }
+  
+  .hostels-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .hostels-table thead {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 5;
+  }
+  
+  .hostels-table th, .hostels-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .hostels-table th {
+    background-color: #f2f2f2;
+  }
+  
+  .hostel-image {
+    max-width: 100px;
+    height: auto;
+  }
+  
+  .hostels-cards {
+    display: none; /* Hide cards on desktop */
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  .hostel-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .hostel-card h2 {
+    margin-top: 0;
+  }
+  
+  .hostel-card p {
+    margin: 4px 0;
+  }
+  
+  .hostel-image-container {
+    margin-top: 16px;
+  }
+  
+  @media (min-width: 769px) {
+    .hostels-table {
+      display: table; /* Show table on larger screens */
+    }
+  
+    .hostels-cards {
+      display: none; /* Hide cards on larger screens */
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .hostels-cards {
+      display: flex; /* Show cards on mobile */
+    }
+  
+    .hostels-table {
+      display: none; /* Hide table on mobile */
+    }
+  
+    .filter-section {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .filter-section > * {
+      margin-bottom: 10px;
+      width: 100%;
+    }
+  }
+  /* General styles for the logout button */
+  .logout-button {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 10px 20px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    z-index: 1000; /* Ensure it's above other content */
+    transition: background-color 0.3s ease; /* Smooth background color transition */
+  }
+  
+  .logout-button:hover {
+    background-color: #c62828;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .logout-button {
+      top: 5px; /* Adjust top position for smaller screens */
+      right: 5px; /* Adjust right position for smaller screens */
+      padding: 8px 16px; /* Adjust padding for smaller screens */
+      font-size: 14px; /* Adjust font size for smaller screens */
+    }
+  }
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 500px;
+    max-height: 80vh; /* Limit the height of the modal content */
+    overflow-y: auto; /* Enable vertical scrolling */
+    position: relative;
+  }
+  
+  
+  .close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  
+  .hostel-image-container {
+    margin-top: 10px;
+  }
+  
+ 

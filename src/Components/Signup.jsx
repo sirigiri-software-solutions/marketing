@@ -15,6 +15,7 @@ const Signup = () => {
 
   const [errors, setErrors] = useState({});
   const [isAdmin, setIsAdmin] = useState(false); // State for admin checkbox
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false); // State for super admin checkbox
   const navigate = useNavigate();
 
   const handleSignup = () => {
@@ -53,7 +54,14 @@ const Signup = () => {
         } else {
           const newUserRef = push(userRef);
           set(newUserRef, {
-            signupData: { firstName, lastName, email, password, isAdmin }, // Save isAdmin status
+            signupData: {
+              firstName,
+              lastName,
+              email,
+              password,
+              isAdmin,
+              isSuperAdmin, // Save isSuperAdmin status
+            },
           })
             .then(() => {
               localStorage.setItem("firstName", firstName); // Save first name to localStorage
@@ -64,7 +72,7 @@ const Signup = () => {
                 password: "",
                 confirmpassword: "",
               });
-              
+              // Redirect to homepage or another page after successful signup
             })
             .catch((error) => {
               console.error("Error adding user data:", error);
@@ -92,6 +100,10 @@ const Signup = () => {
 
   const handleAdminChange = (e) => {
     setIsAdmin(e.target.checked); // Update isAdmin based on checkbox
+  };
+
+  const handleSuperAdminChange = (e) => {
+    setIsSuperAdmin(e.target.checked); // Update isSuperAdmin based on checkbox
   };
 
   return (
@@ -134,6 +146,7 @@ const Signup = () => {
             className="input"
             name="password"
             autoComplete="current-password"
+            value={signupData.password}
             onChange={handleSignupChange}
           />
           {errors.password && <div className="error-text">{errors.password}</div>}
@@ -159,6 +172,16 @@ const Signup = () => {
                 onChange={handleAdminChange}
               />
               Admin
+            </label>
+          </div>
+          <div className="admin-checkbox">
+            <label>
+              <input
+                type="checkbox"
+                checked={isSuperAdmin}
+                onChange={handleSuperAdminChange}
+              />
+              SuperAdmin
             </label>
           </div>
 
