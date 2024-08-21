@@ -140,3 +140,14 @@
     margin-bottom: 10px;
   }
 }
+.image-upload-section {
+  margin: 10px 0;
+}
+
+.image-preview {
+  display: block;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  padding: 5px;
+  background: #f9f9f9;
+}

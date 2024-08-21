@@ -484,6 +484,7 @@ const Mainadmin = () => {
     boardingType: '',
     hostelLocation: '',
     boardingDate: null,
+    verificationStatus: '',
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedHostel, setSelectedHostel] = useState(null);
@@ -633,6 +634,7 @@ const Mainadmin = () => {
       });
       setShowReasonInput(true);
       setReason(hostel.verification.reason || '');
+      setIsEditable(hostel.verification.verificationStatus !== 'Incompleted');
     } else {
       setVerification({
         hostelName: '',

@@ -50,30 +50,41 @@ const Allhostelsdata = () => {
   useEffect(() => {
     const applyFilters = () => {
       let filtered = hostels;
+      console.log('Applying filters:', filters);
+  
       if (filters.marketingPerson) {
         filtered = filtered.filter((hostel) =>
           hostel.marketingPerson.toLowerCase().includes(filters.marketingPerson.toLowerCase())
         );
       }
+  
       if (filters.boardingType) {
-        filtered = filtered.filter((hostel) => hostel.boardingType === filters.boardingType);
+        console.log('Filtering by boardingType:', filters.boardingType);
+        filtered = filtered.filter((hostel) => {
+          console.log('Hostel boardingType:', hostel.boardingType); // Log hostel boardingType
+          return hostel.boardingType === filters.boardingType;
+        });
       }
+  
       if (filters.hostelLocation) {
         filtered = filtered.filter((hostel) =>
           hostel.hostelLocation.toLowerCase().includes(filters.hostelLocation.toLowerCase())
         );
       }
+  
       if (filters.boardingDate) {
         filtered = filtered.filter((hostel) => {
           const hostelDate = new Date(hostel.boardingDate);
           return hostelDate.toDateString() === filters.boardingDate.toDateString();
         });
       }
+  
       setFilteredHostels(filtered);
     };
-
+  
     applyFilters();
   }, [filters, hostels]);
+  
 
   const handleLogout = () => {
     // Handle logout logic here (e.g., clearing tokens, etc.)

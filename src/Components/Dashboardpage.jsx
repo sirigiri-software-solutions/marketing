@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getAuth, signOut } from "firebase/auth"; // Import signOut
-import { ref, set, push, onValue } from "firebase/database";
-import { database } from '../Firebase'; // Import the database instance
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { getAuth, signOut } from 'firebase/auth';
+import { ref, set, push, onValue } from 'firebase/database';
+import { database } from '../Firebase';
+import { useNavigate } from 'react-router-dom';
 import './Dashboardpage.css';
-import '@fortawesome/fontawesome-free/css/all.min.css'; // Import Font Awesome
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const Dashboardpage = () => {
   const [formData, setFormData] = useState({
@@ -22,14 +22,14 @@ const Dashboardpage = () => {
   const [errors, setErrors] = useState({});
   const [showForm, setShowForm] = useState(false);
   const [hostelData, setHostelData] = useState([]);
-  const [filter, setFilter] = useState(''); // State for filter
-  const [startDate, setStartDate] = useState(''); // State for start date filter
-  const [endDate, setEndDate] = useState(''); // State for end date filter
+  const [filter, setFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const auth = getAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [userFirstName, setUserFirstName] = useState('');
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('email');
@@ -41,12 +41,12 @@ const Dashboardpage = () => {
       setUserFirstName(storedFirstName);
       setFormData((prevData) => ({
         ...prevData,
-        marketingPerson: storedFirstName, // Set marketing person from local storage
+        marketingPerson: storedFirstName,
       }));
     }
 
     fetchHostelData();
-  }, [userEmail, filter, startDate, endDate]); // Add startDate and endDate to dependency array
+  }, [userEmail, filter, startDate, endDate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -62,14 +62,14 @@ const Dashboardpage = () => {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData((prevData) => ({
-        ...prevData,
-        hostelImages: reader.result,
-      }));
-    };
     if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prevData) => ({
+          ...prevData,
+          hostelImages: reader.result,
+        }));
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -78,21 +78,23 @@ const Dashboardpage = () => {
     e.preventDefault();
     const { hostelName, hostelOwner, hostelOwnerContact, hostelImages, hostelLocation, boardingType, boardingTime, boardingDate, marketingPerson } = formData;
     let formErrors = {};
-
+  
     if (!hostelName) formErrors.hostelName = "Hostel Name is required";
     if (!hostelOwner) formErrors.hostelOwner = "Hostel Owner is required";
-    if (!hostelOwnerContact) formErrors.hostelOwnerContact = "Contact Number is required";
+    if (!hostelOwnerContact || !/^\d{10}$/.test(hostelOwnerContact)) {
+      formErrors.hostelOwnerContact = "Contact Number must be exactly 10 digits";
+    }
     if (!hostelLocation) formErrors.hostelLocation = "Hostel Location is required";
     if (!boardingType) formErrors.boardingType = "Boarding Type is required";
     if (!boardingTime) formErrors.boardingTime = "Boarding Time is required";
     if (!boardingDate) formErrors.boardingDate = "Boarding Date is required";
     if (!marketingPerson) formErrors.marketingPerson = "Marketing Person is required";
-
+  
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
     }
-
+  
     setIsSubmitting(true);
     try {
       const newHostelRef = push(ref(database, 'hostels'));
@@ -100,7 +102,7 @@ const Dashboardpage = () => {
         hostelName,
         hostelOwner,
         hostelOwnerContact,
-        hostelImages, // Storing Base64 image string
+        hostelImages,
         hostelLocation,
         boardingType,
         boardingTime,
@@ -119,7 +121,7 @@ const Dashboardpage = () => {
         boardingDate: '',
         marketingPerson: userFirstName,
       });
-      fetchHostelData(); // Refresh hostel data
+      fetchHostelData();
       setShowForm(false);
     } catch (e) {
       console.error("Error adding document: ", e);
@@ -128,6 +130,7 @@ const Dashboardpage = () => {
       setIsSubmitting(false);
     }
   };
+  
 
   const fetchHostelData = () => {
     const hostelsRef = ref(database, 'hostels');
@@ -135,12 +138,10 @@ const Dashboardpage = () => {
       const data = snapshot.val();
       let hostels = data ? Object.values(data).filter(hostel => hostel.userEmail === userEmail) : [];
 
-      // Filter based on selected boarding type
       if (filter) {
         hostels = hostels.filter(hostel => hostel.boardingType === filter);
       }
 
-      // Filter based on selected date range
       if (startDate) {
         hostels = hostels.filter(hostel => new Date(hostel.boardingDate) >= new Date(startDate));
       }
@@ -187,10 +188,10 @@ const Dashboardpage = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Sign out the user
-      localStorage.removeItem('email'); // Remove email from local storage
-      localStorage.removeItem('firstName'); // Remove first name from local storage
-      navigate("/"); // Redirect to Login page
+      await signOut(auth);
+      localStorage.removeItem('email');
+      localStorage.removeItem('firstName');
+      navigate("/");
     } catch (error) {
       console.error("Error signing out: ", error);
     }
@@ -198,7 +199,6 @@ const Dashboardpage = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Sticky header with welcome message and add hostel button */}
       <div className="sticky-header">
         <div className="welcome-message">
           <h1>Welcome, {userFirstName}</h1>
@@ -211,7 +211,6 @@ const Dashboardpage = () => {
         </button>
       </div>
 
-      {/* Modal for the form */}
       {showForm && (
         <div className="modal">
           <div className="modal-content">
@@ -236,34 +235,50 @@ const Dashboardpage = () => {
               {errors.hostelOwner && <div className="error-text">{errors.hostelOwner}</div>}
 
               <input
-                type="text"
+                type="tel"
                 placeholder="Contact Number"
                 name="hostelOwnerContact"
                 value={formData.hostelOwnerContact}
                 onChange={handleInputChange}
+                maxLength="10"
+                pattern="\d{10}"
               />
+
               {errors.hostelOwnerContact && <div className="error-text">{errors.hostelOwnerContact}</div>}
 
               <input
                 type="file"
+                id="imageUpload"
                 accept="image/*"
-                name="hostelImages"
+                style={{ display: 'none' }}
                 onChange={handleImageChange}
               />
-              {errors.hostelImages && <div className="error-text">{errors.hostelImages}</div>}
-
-              <div className="location-field">
-                <input
-                  type="text"
-                  placeholder="Hostel Location"
-                  name="hostelLocation"
-                  value={formData.hostelLocation}
-                  onChange={handleInputChange}
-                />
-                <button type="button" onClick={handleFetchLocation}>
-                  <i className="fas fa-location-arrow"></i> {/* Location icon */}
-                </button>
+              <div className="image-upload-section">
+                <label htmlFor="imageUpload" className="image-upload-label">
+                  <i className="fas fa-camera"></i> {/* Camera icon */}
+                  Upload or Take a Photo
+                </label>
+                {formData.hostelImages && (
+                  <img
+                    src={formData.hostelImages}
+                    alt="Hostel Preview"
+                    className="image-preview"
+                    height="100px"
+                    width="100px"
+                  />
+                )}
               </div>
+
+              <input
+                type="text"
+                placeholder="Hostel Location"
+                name="hostelLocation"
+                value={formData.hostelLocation}
+                onChange={handleInputChange}
+              />
+              <button type="button" onClick={handleFetchLocation}>
+                <i className="fas fa-location-arrow"></i> {/* Location icon */}
+              </button>
               {errors.hostelLocation && <div className="error-text">{errors.hostelLocation}</div>}
 
               <select
@@ -271,7 +286,7 @@ const Dashboardpage = () => {
                 value={formData.boardingType}
                 onChange={handleInputChange}
               >
-                <option value="Select Boarding Type">Select Boarding Type</option>
+                <option value="">Select Boarding Type</option>
                 <option value="Onboarding">Onboarding</option>
                 <option value="Visiting">Visiting</option>
               </select>
