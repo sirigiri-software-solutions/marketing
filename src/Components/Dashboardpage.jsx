@@ -84,6 +84,9 @@ const Dashboardpage = () => {
     if (!hostelOwnerContact || !/^\d{10}$/.test(hostelOwnerContact)) {
       formErrors.hostelOwnerContact = "Contact Number must be exactly 10 digits";
     }
+
+    if (!hostelImages) formErrors.hostelImages = "Hostel Image is required";
+
     if (!hostelLocation) formErrors.hostelLocation = "Hostel Location is required";
     if (!boardingType) formErrors.boardingType = "Boarding Type is required";
     if (!boardingTime) formErrors.boardingTime = "Boarding Time is required";
@@ -249,10 +252,13 @@ const Dashboardpage = () => {
               <input
                 type="file"
                 id="imageUpload"
+                name='hostelImages'
                 accept="image/*"
                 style={{ display: 'none' }}
                 onChange={handleImageChange}
               />
+              
+
               <div className="image-upload-section">
                 <label htmlFor="imageUpload" className="image-upload-label">
                   <i className="fas fa-camera"></i> {/* Camera icon */}
@@ -267,6 +273,7 @@ const Dashboardpage = () => {
                     width="100px"
                   />
                 )}
+                {errors.hostelImages && <div className="error-text">{errors.hostelImages}</div>}
               </div>
 
               <input

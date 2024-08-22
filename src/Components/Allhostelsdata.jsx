@@ -19,18 +19,43 @@ const Allhostelsdata = () => {
   const navigate = useNavigate(); // Initialize useNavigate
 
   useEffect(() => {
-    const fetchHostelData = () => {
-      const hostelsRef = ref(database, 'hostels');
-      onValue(hostelsRef, (snapshot) => {
-        const data = snapshot.val();
-        const hostelsList = data ? Object.values(data) : [];
-        setHostels(hostelsList);
-        setFilteredHostels(hostelsList);
-      });
+    const applyFilters = () => {
+      let filtered = hostels;
+      console.log('Applying filters:', filters);
+  
+      if (filters.marketingPerson) {
+        filtered = filtered.filter((hostel) =>
+          hostel.marketingPerson.toLowerCase().includes(filters.marketingPerson.toLowerCase())
+        );
+      }
+  
+      if (filters.boardingType) {
+        console.log('Filtering by boardingType:', filters.boardingType);
+        filtered = filtered.filter((hostel) => {
+          console.log('Hostel boardingType:', hostel.boardingType);
+          return hostel.boardingType.toLowerCase() === filters.boardingType.toLowerCase();
+        });
+      }
+  
+      if (filters.hostelLocation) {
+        filtered = filtered.filter((hostel) =>
+          hostel.hostelLocation.toLowerCase().includes(filters.hostelLocation.toLowerCase())
+        );
+      }
+  
+      if (filters.boardingDate) {
+        filtered = filtered.filter((hostel) => {
+          const hostelDate = new Date(hostel.boardingDate);
+          return hostelDate.toDateString() === filters.boardingDate.toDateString();
+        });
+      }
+  
+      setFilteredHostels(filtered);
     };
-
-    fetchHostelData();
-  }, []);
+  
+    applyFilters();
+  }, [filters, hostels]);
+  
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -61,7 +86,7 @@ const Allhostelsdata = () => {
       if (filters.boardingType) {
         console.log('Filtering by boardingType:', filters.boardingType);
         filtered = filtered.filter((hostel) => {
-          console.log('Hostel boardingType:', hostel.boardingType); // Log hostel boardingType
+          console.log('Hostel boardingType:', hostel.boardingType); 
           return hostel.boardingType === filters.boardingType;
         });
       }
@@ -87,8 +112,7 @@ const Allhostelsdata = () => {
   
 
   const handleLogout = () => {
-    // Handle logout logic here (e.g., clearing tokens, etc.)
-    // Navigate to the login page
+   
     navigate('/');
   };
 
