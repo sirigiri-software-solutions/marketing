@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { getAuth, signOut } from 'firebase/auth';
-import { ref, set, push, onValue } from 'firebase/database';
+import { ref, set, push, onValue, update } from '../Firebase';
 import { database } from '../Firebase';
 import { useNavigate } from 'react-router-dom';
 import './Dashboardpage.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { firestore, collection, addDoc } from '../Firebase';
+import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+
+ // Import necessary Firestore functions
 
 const Dashboardpage = () => {
   const [formData, setFormData] = useState({
@@ -30,6 +34,11 @@ const Dashboardpage = () => {
   const [userEmail, setUserEmail] = useState('');
   const [userFirstName, setUserFirstName] = useState('');
   const navigate = useNavigate();
+  const [selectedHostel, setSelectedHostel] = useState(null);
+  const [nameFilter, setNameFilter] = useState('');
+  
+
+
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('email');
@@ -78,7 +87,7 @@ const Dashboardpage = () => {
     e.preventDefault();
     const { hostelName, hostelOwner, hostelOwnerContact, hostelImages, hostelLocation, boardingType, boardingTime, boardingDate, marketingPerson } = formData;
     let formErrors = {};
-  
+
     if (!hostelName) formErrors.hostelName = "Hostel Name is required";
     if (!hostelOwner) formErrors.hostelOwner = "Hostel Owner is required";
     if (!hostelOwnerContact || !/^\d{10}$/.test(hostelOwnerContact)) {
@@ -92,12 +101,12 @@ const Dashboardpage = () => {
     if (!boardingTime) formErrors.boardingTime = "Boarding Time is required";
     if (!boardingDate) formErrors.boardingDate = "Boarding Date is required";
     if (!marketingPerson) formErrors.marketingPerson = "Marketing Person is required";
-  
+
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
     }
-  
+
     setIsSubmitting(true);
     try {
       const newHostelRef = push(ref(database, 'hostels'));
@@ -133,28 +142,60 @@ const Dashboardpage = () => {
       setIsSubmitting(false);
     }
   };
-  
+
+
+  function sortVisitsByDateTime(visits) {
+    // Convert visits object to an array of visit objects
+    const visitsArray = Object.keys(visits).map(key => visits[key]);
+
+    // Sort visits array by visitDate and visitTime
+    return visitsArray.sort((a, b) => {
+      const dateTimeA = new Date(`${a.visitDate}T${a.visitTime}`);
+      const dateTimeB = new Date(`${b.visitDate}T${b.visitTime}`);
+      return dateTimeA - dateTimeB;
+    });
+  }
 
   const fetchHostelData = () => {
     const hostelsRef = ref(database, 'hostels');
     onValue(hostelsRef, (snapshot) => {
       const data = snapshot.val();
-      let hostels = data ? Object.values(data).filter(hostel => hostel.userEmail === userEmail) : [];
+      console.log(data, "EntireHostel");
+
+      let hostels = data ? Object.entries(data)
+        .filter(([id, hostel]) => hostel.userEmail === userEmail)
+        .map(([id, hostel]) => {
+          // Extract and sort visits for this hostel
+          const sortedVisits = hostel.visits ? sortVisitsByDateTime(hostel.visits) : [];
+          return { id, ...hostel, visits: sortedVisits };
+        }) : [];
+
+      // Create a new variable to hold filtered hostels
+      let filteredHostels = hostels;
 
       if (filter) {
-        hostels = hostels.filter(hostel => hostel.boardingType === filter);
+        filteredHostels = filteredHostels.filter(hostel => hostel.boardingType === filter);
       }
+      if (nameFilter) {
+        filteredHostels = filteredHostels.filter(hostel => hostel.hostelName.toLowerCase().includes(nameFilter.toLowerCase()));
+      }
+  
+      console.log(filteredHostels, "FilteredHostel");
+      setHostelData(filteredHostels);
 
       if (startDate) {
-        hostels = hostels.filter(hostel => new Date(hostel.boardingDate) >= new Date(startDate));
-      }
-      if (endDate) {
-        hostels = hostels.filter(hostel => new Date(hostel.boardingDate) <= new Date(endDate));
+        filteredHostels = filteredHostels.filter(hostel => new Date(hostel.boardingDate) >= new Date(startDate));
       }
 
-      setHostelData(hostels);
+      if (endDate) {
+        filteredHostels = filteredHostels.filter(hostel => new Date(hostel.boardingDate) <= new Date(endDate));
+      }
+
+      console.log(filteredHostels, "FilteredHostel");
+      setHostelData(filteredHostels);
     });
   };
+
 
   const handleFetchLocation = () => {
     if (navigator.geolocation) {
@@ -204,7 +245,8 @@ const Dashboardpage = () => {
     <div className="dashboard-container">
       <div className="sticky-header">
         <div className="welcome-message">
-          <h1>Welcome, {userFirstName}</h1>
+          <h3>Welcome, </h3>
+          <h4>{userFirstName}</h4>
         </div>
         <button onClick={() => setShowForm(true)} className="button-addhostel">
           Add Hostel
@@ -217,7 +259,7 @@ const Dashboardpage = () => {
       {showForm && (
         <div className="modal">
           <div className="modal-content">
-            <span className="close" onClick={() => setShowForm(false)}>&times;</span>
+            <span className="close1" onClick={() => setShowForm(false)}>&times;</span>
             <form className="hostel-form" onSubmit={handleFormSubmit}>
               <input
                 type="text"
@@ -227,6 +269,7 @@ const Dashboardpage = () => {
                 onChange={handleInputChange}
               />
               {errors.hostelName && <div className="error-text">{errors.hostelName}</div>}
+
 
               <input
                 type="text"
@@ -257,7 +300,7 @@ const Dashboardpage = () => {
                 style={{ display: 'none' }}
                 onChange={handleImageChange}
               />
-              
+
 
               <div className="image-upload-section">
                 <label htmlFor="imageUpload" className="image-upload-label">
@@ -298,6 +341,7 @@ const Dashboardpage = () => {
                 <option value="Visiting">Visiting</option>
               </select>
               {errors.boardingType && <div className="error-text">{errors.boardingType}</div>}
+              
 
               <input
                 type="time"
@@ -335,41 +379,59 @@ const Dashboardpage = () => {
         </div>
       )}
 
-      <div className="filter-container">
+<div className="filter-container">
         <div className="filter-options">
+          <div className='filter-item-filter'>
           <div className='filter-item'>
             <p>Select Category Type:</p>
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ width: '150px', height: '30px' }}>
               <option value="">All</option>
               <option value="Onboarding">Onboarding</option>
               <option value="Visiting">Visiting</option>
             </select>
           </div>
           <div className='filter-item'>
-            <p>Start Date:</p>
+            <p>Hostel Name:</p>
             <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              placeholder="Start Date"
+              type="text"
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+              placeholder="Filter by hostel name" style={{ width: '150px', height: '30px',marginRight:'15px' ,borderRadius:'8px'}}
             />
           </div>
-          <div className='filter-item'>
-            <p>End Date:</p>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              placeholder="End Date"
-            />
           </div>
+          <div className='filter-container-filter'>
+            <div className='filter-item'>
+              <p>Start Date:</p>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                placeholder="Start Date" style={{ width: '150px', height: '30px' ,marginRight:'15px'}}
+              />
+            </div>
+            <div className='filter-item'>
+              <p>End Date:</p>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                placeholder="End Date" style={{ width: '150px', height: '30px' }}
+              />
+            </div>
+          </div>
+          
         </div>
-      </div>
+      </div> 
 
       <div className="hostel-list">
         {hostelData.length > 0 ? (
           hostelData.map((hostel, index) => (
-            <div key={index} className="hostel-card">
+            <div
+              key={index}
+              className="hostel-card"
+              onClick={() => setSelectedHostel(hostel)}
+            >
               <h2>{hostel.hostelName}</h2>
               <p>Owner: {hostel.hostelOwner}</p>
               <p>Contact: {hostel.hostelOwnerContact}</p>
@@ -379,14 +441,183 @@ const Dashboardpage = () => {
               <p>Date: {hostel.boardingDate}</p>
               <p>Marketing Person: {hostel.marketingPerson}</p>
               {hostel.hostelImages && <img src={hostel.hostelImages} alt="Hostel" className="hostel-image" height="100px" width="100px" />}
+              {hostel.visits && hostel.visits.map((eachVisit, index) => (
+                <>
+                  <h3>Visit : {index + 1}</h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px' }}>
+                      <h4 style={{ margin: 0, marginRight: '5px' }}>VisitDate:</h4>
+                      <p style={{ margin: 0 }}>{eachVisit.visitDate}</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px' }}>
+                      <h4 style={{ margin: 0, marginRight: '5px' }}>VisitTime:</h4>
+                      <p style={{ margin: 0 }}>{eachVisit.visitTime}</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <h4 style={{ margin: 0, marginRight: '5px' }}>Updation:</h4>
+                      <p style={{ margin: 0 }}>{eachVisit.comments}</p>
+                    </div>
+                  </div>
+
+
+                </>
+              ))}
             </div>
           ))
         ) : (
           <p>No hostels found</p>
         )}
       </div>
+      {selectedHostel && (
+        <HostelDetailsPopup
+          hostel={selectedHostel}
+          onClose={() => setSelectedHostel(null)}
+        />
+      )}
+
     </div>
   );
 };
+
+
+
+
+
+
+
+
+
+
+const HostelDetailsPopup = ({ hostel, onClose }) => {
+  const [showAdditionalFields, setShowAdditionalFields] = useState(false);
+  const [visitDate, setVisitDate] = useState('');
+  const [visitTime, setVisitTime] = useState('');
+  const [comments, setComments] = useState('');
+
+  const handleRadioChange = (e) => {
+    setShowAdditionalFields(e.target.checked);
+  };
+
+  const handleVisitDateChange = (e) => {
+    setVisitDate(e.target.value);
+  };
+
+  const handleVisitTimeChange = (e) => {
+    setVisitTime(e.target.value);
+  };
+
+  const handleCommentsChange = (e) => {
+    setComments(e.target.value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (visitDate && visitTime && comments) {
+      try {
+        // Create visit details object
+        const visitDetails = {
+          visitDate,
+          visitTime,
+          comments,
+          createdAt: new Date().toISOString(),
+        };
+
+        // Reference to the Firestore document for the 
+        await push(ref(database, `hostels/${hostel.id}/visits`), visitDetails)
+
+
+
+
+        alert('Visit details submitted successfully!');
+        onClose()
+
+        // Reset the form but keep the popup open for another submission
+        setVisitDate('');
+        setVisitTime('');
+        setComments('');
+        setShowAdditionalFields(true); // Keep the additional fields open for the next input
+      } catch (error) {
+        console.error('Error submitting visit details:', error);
+        alert('Failed to submit visit details. Please try again.');
+      }
+    } else {
+      alert('Please fill in all the fields.');
+    }
+  };
+
+  return (
+    <div className="popup">
+      <div className="popup-content">
+        <span className="close" onClick={onClose}>&times;</span>
+        <h2>{hostel.hostelName}</h2>
+        <p>Owner: {hostel.hostelOwner}</p>
+        <p>Contact: {hostel.hostelOwnerContact}</p>
+        <p>Location: {hostel.hostelLocation}</p>
+        <p>Type: {hostel.boardingType}</p>
+        <p>Time: {hostel.boardingTime}</p>
+        <p>Date: {hostel.boardingDate}</p>
+        <p>Marketing Person: {hostel.marketingPerson}</p>
+        {hostel.hostelImages && (
+          <img src={hostel.hostelImages} alt="Hostel" className="popup-image" height="100px" width="100px" />
+        )}
+
+        <div className="visiting-hostel">
+          <div>
+            <input
+              type="checkbox"
+              id="visiting"
+              checked={showAdditionalFields}
+              onChange={handleRadioChange}
+            />
+            <label htmlFor="visiting">Again Visiting the Hostel</label>
+          </div>
+
+          {showAdditionalFields && (
+            <div className="additional-fields">
+              <label htmlFor="visit-date">Visit Date:</label>
+              <input
+                type="date"
+                id="visit-date"
+                value={visitDate}
+                onChange={handleVisitDateChange}
+              />
+              <label htmlFor="visit-time">Visit Time:</label>
+              <input
+                type="time"
+                id="visit-time"
+                value={visitTime}
+                onChange={handleVisitTimeChange}
+              />
+              <label htmlFor="comments">Comments:</label>
+              <textarea
+                id="comments"
+                value={comments}
+                onChange={handleCommentsChange}
+                rows="4"
+              />
+              <button onClick={handleSubmit}>Submit</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export default Dashboardpage;
