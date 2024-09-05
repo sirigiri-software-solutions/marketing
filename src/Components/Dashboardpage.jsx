@@ -161,7 +161,7 @@ const Dashboardpage = () => {
     onValue(hostelsRef, (snapshot) => {
       const data = snapshot.val();
       console.log(data, "EntireHostel");
-
+  
       let hostels = data ? Object.entries(data)
         .filter(([id, hostel]) => hostel.userEmail === userEmail)
         .map(([id, hostel]) => {
@@ -169,32 +169,29 @@ const Dashboardpage = () => {
           const sortedVisits = hostel.visits ? sortVisitsByDateTime(hostel.visits) : [];
           return { id, ...hostel, visits: sortedVisits };
         }) : [];
-
+  
       // Create a new variable to hold filtered hostels
       let filteredHostels = hostels;
-
+  
+      // Apply filters
       if (filter) {
         filteredHostels = filteredHostels.filter(hostel => hostel.boardingType === filter);
       }
       if (nameFilter) {
         filteredHostels = filteredHostels.filter(hostel => hostel.hostelName.toLowerCase().includes(nameFilter.toLowerCase()));
       }
-  
-      console.log(filteredHostels, "FilteredHostel");
-      setHostelData(filteredHostels);
-
       if (startDate) {
         filteredHostels = filteredHostels.filter(hostel => new Date(hostel.boardingDate) >= new Date(startDate));
       }
-
       if (endDate) {
         filteredHostels = filteredHostels.filter(hostel => new Date(hostel.boardingDate) <= new Date(endDate));
       }
-
+  
       console.log(filteredHostels, "FilteredHostel");
       setHostelData(filteredHostels);
     });
   };
+  
 
 
   const handleFetchLocation = () => {
@@ -203,16 +200,22 @@ const Dashboardpage = () => {
         async (position) => {
           const { latitude, longitude } = position.coords;
           try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+            // Use the Google Maps Geocoding API to get address details
+            const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=YOUR_GOOGLE_API_KEY`);
             const data = await response.json();
-            if (data) {
-              const location = data.display_name;
+  
+            if (data.status === 'OK') {
+              // Extract the address or name from the response
+              const addressComponents = data.results[0].address_components;
+              const formattedAddress = data.results[0].formatted_address;
+  
+              // Optionally, find more specific details from addressComponents if needed
               setFormData((prevData) => ({
                 ...prevData,
-                hostelLocation: location,
+                hostelLocation: formattedAddress, // Or any specific part of addressComponents
               }));
             } else {
-              console.error("Error fetching location: ", data);
+              console.error("Error fetching location: ", data.status);
               setErrors({ general: "Error fetching location" });
             }
           } catch (error) {
@@ -229,6 +232,7 @@ const Dashboardpage = () => {
       setErrors({ general: "Geolocation is not supported by this browser." });
     }
   };
+  
 
   const handleLogout = async () => {
     try {
@@ -239,6 +243,9 @@ const Dashboardpage = () => {
     } catch (error) {
       console.error("Error signing out: ", error);
     }
+  };
+  const getMapsUrl = (location) => {
+    return location ? `https://www.google.com/maps?q=${location}` : '#';
   };
 
   return (
@@ -259,7 +266,7 @@ const Dashboardpage = () => {
       {showForm && (
         <div className="modal">
           <div className="modal-content">
-            <span className="close1" onClick={() => setShowForm(false)}>&times;</span>
+            <div><span className="close1" onClick={() => setShowForm(false)}>&times;</span></div>
             <form className="hostel-form" onSubmit={handleFormSubmit}>
               <input
                 type="text"
@@ -383,7 +390,7 @@ const Dashboardpage = () => {
         <div className="filter-options">
           <div className='filter-item-filter'>
           <div className='filter-item'>
-            <p>Select Category Type:</p>
+            <p>Select Category:</p>
             <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ width: '150px', height: '30px' }}>
               <option value="">All</option>
               <option value="Onboarding">Onboarding</option>
@@ -396,7 +403,7 @@ const Dashboardpage = () => {
               type="text"
               value={nameFilter}
               onChange={(e) => setNameFilter(e.target.value)}
-              placeholder="Filter by hostel name" style={{ width: '150px', height: '30px',marginRight:'15px' ,borderRadius:'8px'}}
+              placeholder="Filter by hostel name" style={{ width: '150px', height: '23px',marginRight:'15px' ,borderRadius:'8px'}}
             />
           </div>
           </div>
@@ -425,49 +432,55 @@ const Dashboardpage = () => {
       </div> 
 
       <div className="hostel-list">
-        {hostelData.length > 0 ? (
-          hostelData.map((hostel, index) => (
-            <div
-              key={index}
-              className="hostel-card"
-              onClick={() => setSelectedHostel(hostel)}
+      {hostelData.length > 0 ? (
+        hostelData.map((hostel, index) => (
+          <div
+            key={index}
+            className="hostel-card"
+            onClick={() => setSelectedHostel(hostel)}
+          >
+            <h2>{hostel.hostelName}</h2>
+            <p>Owner: {hostel.hostelOwner}</p>
+            <p>Contact: {hostel.hostelOwnerContact}</p>
+            <p>Location: {hostel.hostelLocation}</p>
+            <button
+              onClick={() => window.open(getMapsUrl(hostel.hostelLocation), '_blank')}
+              disabled={!hostel.hostelLocation}
             >
-              <h2>{hostel.hostelName}</h2>
-              <p>Owner: {hostel.hostelOwner}</p>
-              <p>Contact: {hostel.hostelOwnerContact}</p>
-              <p>Location: {hostel.hostelLocation}</p>
-              <p>Type: {hostel.boardingType}</p>
-              <p>Time: {hostel.boardingTime}</p>
-              <p>Date: {hostel.boardingDate}</p>
-              <p>Marketing Person: {hostel.marketingPerson}</p>
-              {hostel.hostelImages && <img src={hostel.hostelImages} alt="Hostel" className="hostel-image" height="100px" width="100px" />}
-              {hostel.visits && hostel.visits.map((eachVisit, index) => (
-                <>
-                  <h3>Visit : {index + 1}</h3>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px' }}>
-                      <h4 style={{ margin: 0, marginRight: '5px' }}>VisitDate:</h4>
-                      <p style={{ margin: 0 }}>{eachVisit.visitDate}</p>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px' }}>
-                      <h4 style={{ margin: 0, marginRight: '5px' }}>VisitTime:</h4>
-                      <p style={{ margin: 0 }}>{eachVisit.visitTime}</p>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <h4 style={{ margin: 0, marginRight: '5px' }}>Updation:</h4>
-                      <p style={{ margin: 0 }}>{eachVisit.comments}</p>
-                    </div>
+              Open in Google Maps
+            </button>
+            <p>Type: {hostel.boardingType}</p>
+            <p>Time: {hostel.boardingTime}</p>
+            <p>Date: {hostel.boardingDate}</p>
+            <p>Marketing Person: {hostel.marketingPerson}</p>
+            {hostel.hostelImages && <img src={hostel.hostelImages} alt="Hostel" className="hostel-image" height="100px" width="100px" />}
+            {hostel.visits && hostel.visits.map((eachVisit, index) => (
+              <React.Fragment key={index}>
+                <h3>Visit : {index + 1}</h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px' }}>
+                    <h4 style={{ margin: 0, marginRight: '5px' }}>VisitDate:</h4>
+                    <p style={{ margin: 0 }}>{eachVisit.visitDate}</p>
                   </div>
+                  <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px' }}>
+                    <h4 style={{ margin: 0, marginRight: '5px' }}>VisitTime:</h4>
+                    <p style={{ margin: 0 }}>{eachVisit.visitTime}</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <h4 style={{ margin: 0, marginRight: '5px' }}>Updation:</h4>
+                    <p style={{ margin: 0 }}>{eachVisit.comments}</p>
+                  </div>
+                </div>
+              </React.Fragment>
+            ))}
+           
+          </div>
+        ))
+      ) : (
+        <p>No hostels found</p>
+      )}
+    </div>
 
-
-                </>
-              ))}
-            </div>
-          ))
-        ) : (
-          <p>No hostels found</p>
-        )}
-      </div>
       {selectedHostel && (
         <HostelDetailsPopup
           hostel={selectedHostel}
