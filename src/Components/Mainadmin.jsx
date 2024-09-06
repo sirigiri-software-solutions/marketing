@@ -511,7 +511,7 @@ const Mainadmin = () => {
     marketingPerson: false,
     hostelImages: false,
   });
-  
+
 
 
   const navigate = useNavigate();
@@ -526,7 +526,7 @@ const Mainadmin = () => {
             id: key,
             ...data[key]
           }));
-  
+
           setHostels(hostelsList);
           setFilteredHostels(hostelsList);
         } else {
@@ -535,10 +535,10 @@ const Mainadmin = () => {
         }
       });
     };
-  
+
     fetchHostelData();
   }, []);
-  
+
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -558,9 +558,9 @@ const Mainadmin = () => {
     'marketingPerson',
     'hostelImages'
   ];
-  
-  
-  
+
+
+
 
   const handleDateChange = (date) => {
     setFilters((prevFilters) => ({
@@ -572,32 +572,32 @@ const Mainadmin = () => {
   useEffect(() => {
     const applyFilters = () => {
       let filtered = hostels;
-  
+
       if (filters.marketingPerson) {
         filtered = filtered.filter((hostel) =>
           hostel.marketingPerson.toLowerCase().includes(filters.marketingPerson.toLowerCase())
         );
       }
-  
+
       if (filters.boardingType) {
         filtered = filtered.filter((hostel) =>
           hostel.boardingType.toLowerCase() === filters.boardingType.toLowerCase()
         );
       }
-  
+
       if (filters.hostelLocation) {
         filtered = filtered.filter((hostel) =>
           hostel.hostelLocation.toLowerCase().includes(filters.hostelLocation.toLowerCase())
         );
       }
-  
+
       if (filters.boardingDate) {
         filtered = filtered.filter((hostel) => {
           const hostelDate = new Date(hostel.boardingDate);
           return hostelDate.toDateString() === filters.boardingDate.toDateString();
         });
       }
-  
+
       if (filters.verificationStatus) {
         filtered = filtered.filter((hostel) => {
           // Ensure that `verificationStatus` is in lowercase to match the filter
@@ -605,13 +605,13 @@ const Mainadmin = () => {
           return status === filters.verificationStatus.toLowerCase();
         });
       }
-  
+
       setFilteredHostels(filtered);
     };
-  
+
     applyFilters();
   }, [filters, hostels]);
-  
+
 
 
   const handleLogout = () => {
@@ -650,10 +650,10 @@ const Mainadmin = () => {
       setShowReasonInput(false);
       setIsEditable(true);
     }
-  
+
     setIsModalOpen(true);
   };
-  
+
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -675,7 +675,7 @@ const Mainadmin = () => {
       ...prev,
       [section]: value,
     }));
-  
+
     // Show reason input if any field is marked as 'no'
     if (value === 'no') {
       setShowReasonInput(true);
@@ -690,7 +690,7 @@ const Mainadmin = () => {
 
   const handleSubmit = () => {
     if (!selectedHostel || !selectedHostel.id) return;
-  
+
     // Validate fields
     const requiredFields = [
       'hostelName',
@@ -702,9 +702,9 @@ const Mainadmin = () => {
       'marketingPerson',
       'hostelImages'
     ];
-  
+
     const errors = {};
-  
+
     // Check if all required fields are filled
     requiredFields.forEach(field => {
       if (verification[field] !== 'yes' && verification[field] !== 'no') {
@@ -713,35 +713,35 @@ const Mainadmin = () => {
         errors[field] = false;
       }
     });
-  
+
     // Set validation errors
     setValidationErrors(errors);
-  
+
     // Check if all required fields are filled
     const allFieldsFilled = Object.values(errors).every(error => !error);
-  
+
     if (!allFieldsFilled) {
       alert('Please select Yes or No for all required fields.');
       return;
     }
-  
+
     // Check if any field is marked as "No" and if a reason is provided
     const anyFieldNo = requiredFields.some(field => verification[field] === 'no');
     if (anyFieldNo && !reason.trim()) {
       alert('Please provide a reason if any field is marked as "No".');
       return;
     }
-  
+
     // Determine verification status
     const verificationStatus = anyFieldNo ? 'Incompleted' : 'Completed';
-  
+
     const verificationData = {
       ...verification,
       verificationStatus: verificationStatus,
       submitted: true,
       reason: reason
     };
-  
+
     // Update database
     const hostelsRef = ref(database, `hostels/${selectedHostel.id}`);
     update(hostelsRef, { verification: verificationData })
@@ -754,119 +754,141 @@ const Mainadmin = () => {
         console.error('Error updating verification data:', error);
       });
   };
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
 
   return (
     <div className="all-hostels-container">
-      <button className="logout-button" onClick={handleLogout}>
-        Logout
-      </button>
-      <h1>All Hostels Data</h1>
 
       <div className="filter-section">
-        <input
-          type="text"
-          placeholder="Marketing Person"
-          name="marketingPerson"
-          value={filters.marketingPerson}
-          onChange={handleFilterChange}
-        />
-        <select
-          name="boardingType"
-          value={filters.boardingType}
-          onChange={handleFilterChange}
-        >
-          <option value="">All Boarding Types</option>
-          <option value="OnBoarding">OnBoarding</option>
-          <option value="Visiting">Visiting</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Hostel Location"
-          name="hostelLocation"
-          value={filters.hostelLocation}
-          onChange={handleFilterChange}
-        />
-        <DatePicker
-          selected={filters.boardingDate}
-          onChange={handleDateChange}
-          placeholderText="Select Boarding Date"
-        />
-         <select
-          name="verificationStatus"
-          value={filters.verificationStatus}
-          onChange={handleFilterChange}
-        >
-          <option value="">All Verification Status</option>
-          <option value="Completed">Completed</option>
-          <option value="Incompleted">Incompleted</option>
-        </select>
+        <div className='uma-uma'>
+          <div style={{ marginRight:'20px' }}><h3>Welcome Admin</h3></div>
+          <div ><button onClick={handleLogout} className='logout-button' style={{ backgroundColor: 'blue', color: 'white', borderRadius: '8px', border: 'none' }}>
+            Logout
+          </button>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+  <div style={{ flex: '1 1 calc(50% - 10px)' }}>
+    <input
+      type="text"
+      placeholder="Marketing Person"
+      name="marketingPerson"
+      value={filters.marketingPerson}
+      onChange={handleFilterChange}
+      style={{ width: '100%', height: '32px' }}
+    />
+  </div>
+  <div style={{ flex: '1 1 calc(50% - 10px)' }}>
+    <select
+      name="boardingType"
+      value={filters.boardingType}
+      onChange={handleFilterChange}
+      style={{ width: '100%', height: '32px' }}
+    >
+      <option value="">All Boarding Types</option>
+      <option value="OnBoarding">OnBoarding</option>
+      <option value="Visiting">Visiting</option>
+    </select>
+  </div>
+  <div style={{ flex: '1 1 calc(50% - 10px)' }}>
+    <input
+      type="text"
+      placeholder="Hostel Location"
+      name="hostelLocation"
+      value={filters.hostelLocation}
+      onChange={handleFilterChange}
+      style={{ width: '100%', height: '32px' }}
+    />
+  </div>
+  <div style={{ flex: '1 1 calc(50% - 10px)' }}>
+    <select
+      name="verificationStatus"
+      value={filters.verificationStatus}
+      onChange={handleFilterChange}
+      style={{ width: '100%', height: '32px' }}
+    >
+      <option value="">All Verification Status</option>
+      <option value="Completed">Completed</option>
+      <option value="Incompleted">Incompleted</option>
+    </select>
+  </div>
+  <div style={{ flex: '1 1 100%' }}>
+    <DatePicker
+      selected={filters.boardingDate}
+      onChange={handleDateChange}
+      placeholderText="Select Boarding Date"
+      style={{ width: '100%', height: '32px' }}
+    />
+  </div>
+</div>
+
+       
       </div>
 
-      
-<div className="hostels-table-wrapper">
-  <table className="hostels-table">
-    <thead>
-      <tr>
-        <th>Hostel Name</th>
-        <th>Hostel Owner</th>
-        <th>Hostel Location</th>
-        <th>Contact Number</th>
-        <th>Boarding Type</th>
-        <th>Boarding Date</th>
-        <th>Marketing Person</th>
-        <th>Hostel Images</th>
-        <th>Verification</th>
-      </tr>
-    </thead>
-    <tbody>
-      {filteredHostels.length > 0 ? (
-        filteredHostels.map((hostel, index) => (
-          <tr key={index}>
-            <td>{hostel.hostelName}</td>
-            <td>{hostel.hostelOwner}</td>
-            <td>{hostel.hostelLocation}</td>
-            <td>{hostel.hostelOwnerContact}</td>
-            <td>{hostel.boardingType}</td>
-            <td>{hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</td>
-            <td>{hostel.marketingPerson}</td>
-            <td>
-              {hostel.hostelImages ? (
-                <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" />
-              ) : (
-                'No Image'
-              )}
-            </td>
-            <td>
-              {hostel.verification && hostel.verification.verificationStatus === 'Completed' ? (
-                <span>Completed</span>
-              ) : (
-                <>
-                              
-              {hostel.verification && hostel.verification.verificationStatus !== 'Completed' ? "InCompleted":"" }
-              <button onClick={() => openModal(hostel)} className="verification-button">
-                  For Verification
-                </button>
-                </>
 
-                
-              )}
-            </td>
-          </tr>
-        ))
-      ) : (
-        <tr>
-          <td colSpan="9">No data available</td>
-        </tr>
-      )}
-    </tbody>
-  </table>
-</div>
+      <div className="hostels-table-wrapper">
+        <table className="hostels-table">
+          <thead>
+            <tr>
+              <th>Hostel Name</th>
+              <th>Hostel Owner</th>
+              <th>Hostel Location</th>
+              <th>Contact Number</th>
+              <th>Boarding Type</th>
+              <th>Boarding Date</th>
+              <th>Marketing Person</th>
+              <th>Hostel Images</th>
+              <th>Verification</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredHostels.length > 0 ? (
+              filteredHostels.map((hostel, index) => (
+                <tr key={index}>
+                  <td>{hostel.hostelName}</td>
+                  <td>{hostel.hostelOwner}</td>
+                  <td>{hostel.hostelLocation}</td>
+                  <td>{hostel.hostelOwnerContact}</td>
+                  <td>{hostel.boardingType}</td>
+                  <td>{hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</td>
+                  <td>{hostel.marketingPerson}</td>
+                  <td>
+                    {hostel.hostelImages ? (
+                      <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" />
+                    ) : (
+                      'No Image'
+                    )}
+                  </td>
+                  <td>
+                    {hostel.verification && hostel.verification.verificationStatus === 'Completed' ? (
+                      <span>Completed</span>
+                    ) : (
+                      <>
+
+                        {hostel.verification && hostel.verification.verificationStatus !== 'Completed' ? "InCompleted" : ""}
+                        <button onClick={() => openModal(hostel)} className="verification-button">
+                          For Verification
+                        </button>
+                      </>
+
+
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="9">No data available</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
 
       {/* Card layout for smaller screens */}
@@ -883,27 +905,27 @@ const Mainadmin = () => {
               <p><strong>Marketing Person:</strong> {hostel.marketingPerson}</p>
               <div className="hostel-image-container">
                 {hostel.hostelImages ? (
-                  <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" height="100px" width="100px"/>
+                  <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" height="100px" width="100px" />
                 ) : (
                   'No Image'
                 )}
               </div>
               <div>
-              {hostel.verification && hostel.verification.verificationStatus === 'Completed' ? (
-                <span>Completed</span>
-              ) : (
-                <>
-                              
-              {hostel.verification && hostel.verification.verificationStatus !== 'Completed' ? "InCompleted":"" }
-              <button onClick={() => openModal(hostel)} className="verification-button">
-                  For Verification
-                </button>
-                </>
+                {hostel.verification && hostel.verification.verificationStatus === 'Completed' ? (
+                  <span>Completed</span>
+                ) : (
+                  <>
 
-                
-              )}
-            </div>
-              
+                    {hostel.verification && hostel.verification.verificationStatus !== 'Completed' ? "InCompleted" : ""}
+                    <button onClick={() => openModal(hostel)} className="verification-button">
+                      For Verification
+                    </button>
+                  </>
+
+
+                )}
+              </div>
+
             </div>
           ))
         ) : (
@@ -1099,14 +1121,14 @@ const Mainadmin = () => {
               </label>
               {validationErrors.marketingPerson === '' && <span className="error-text">Please select an option.</span>}
             </div>
-           
+
             <div className="modal-section">
-               <p><strong>Hostel Images:</strong></p>
-               {selectedHostel.hostelImages ? (
-                 <img src={selectedHostel.hostelImages} alt={selectedHostel.hostelName} className="hostel-image" />
-               ) : (
+              <p><strong>Hostel Images:</strong></p>
+              {selectedHostel.hostelImages ? (
+                <img src={selectedHostel.hostelImages} alt={selectedHostel.hostelName} className="hostel-image" />
+              ) : (
                 'No Image'
-               )}
+              )}
               <label>
                 <input
                   type="radio"
@@ -1141,20 +1163,20 @@ const Mainadmin = () => {
                   placeholder="Enter reason here"
                   disabled={!isEditable}
                 />
-                 {validationErrors.reason === '' && <span className="error-text">Please select an option.</span>}
+                {validationErrors.reason === '' && <span className="error-text">Please select an option.</span>}
               </div>
             )}
 
             <div className="modal-section">
-            {selectedHostel && selectedHostel.verification?.verificationStatus !== 'completed' && (
-              <button
-                className="modal-submit-button"
-                onClick={handleSubmit}
-                disabled={!isEditable}
-              >
-                Submit
-              </button>
-            )}
+              {selectedHostel && selectedHostel.verification?.verificationStatus !== 'completed' && (
+                <button
+                  className="modal-submit-button"
+                  onClick={handleSubmit}
+                  disabled={!isEditable}
+                >
+                  Submit
+                </button>
+              )}
             </div>
           </div>
         </div>
