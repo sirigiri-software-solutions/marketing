@@ -1,8 +1,11 @@
+
 // Firebase.jsx
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, push, onValue,update } from "firebase/database";
+import { getDatabase, ref, set, push, onValue, update } from "firebase/database";
 import { getFirestore, collection, addDoc } from "firebase/firestore";
-
+import { getStorage, ref as storageRef } from "firebase/storage"; // Correct import for Firebase storage
+ 
+ 
 const firebaseConfig = {
   apiKey: "AIzaSyAdXYPseeNz6MH_1sDzELmvqOE5zCV2-sM",
   authDomain: "marketing-82d52.firebaseapp.com",
@@ -13,9 +16,10 @@ const firebaseConfig = {
   appId: "1:373681777541:web:ab3ad866ad21265f2772ec",
   measurementId: "G-K9WMKTRLJY"
 };
-
+ 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const firestore = getFirestore(app);
-
-export { database, ref, set, push, onValue, firestore, collection, addDoc,update };
+const storage = getStorage(app);
+ 
+export { database, ref, set, push, onValue, firestore, collection, addDoc,update,storage,storageRef };

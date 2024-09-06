@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { getAuth, signOut } from 'firebase/auth';
-import { ref, set, push, onValue, update } from '../Firebase';
+import { ref, set, push, onValue, update } from 'firebase/database';
+import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage'; // Import Firebase storage functions
 import { database } from '../Firebase';
 import { useNavigate } from 'react-router-dom';
 import './Dashboardpage.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { firestore, collection, addDoc } from '../Firebase';
-import { doc, updateDoc, arrayUnion } from "firebase/firestore";
-
- // Import necessary Firestore functions
 
 const Dashboardpage = () => {
   const [formData, setFormData] = useState({
@@ -21,24 +18,28 @@ const Dashboardpage = () => {
     boardingTime: '',
     boardingDate: '',
     marketingPerson: '', // This will be populated from local storage
+    latitude: '', // New field
+    longitude: '', // New field
   });
-
   const [errors, setErrors] = useState({});
   const [showForm, setShowForm] = useState(false);
   const [hostelData, setHostelData] = useState([]);
   const [filter, setFilter] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const auth = getAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [userFirstName, setUserFirstName] = useState('');
-  const navigate = useNavigate();
   const [selectedHostel, setSelectedHostel] = useState(null);
   const [nameFilter, setNameFilter] = useState('');
-  
+  const [exactLocation, setExactLocation] = useState({
+    latitude: '',
+    longitude: ''
+  });
+  const [uploadProgress, setUploadProgress] = useState(null); // State for upload progress
 
-
+  const auth = getAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('email');
@@ -69,38 +70,57 @@ const Dashboardpage = () => {
     }));
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prevData) => ({
-          ...prevData,
-          hostelImages: reader.result,
-        }));
-      };
-      reader.readAsDataURL(file);
+      const storage = getStorage(); // Initialize Firebase Storage
+      const storageReference = storageRef(storage, `images/${file.name}`);
+      const uploadTask = uploadBytesResumable(storageReference, file);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          // Track progress
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          // Handle upload error
+          setErrors({ hostelImages: `Error uploading image: ${error.message}` });
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          setFormData((prevData) => ({
+            ...prevData,
+            hostelImages: downloadURL,
+          }));
+          setUploadProgress(null); // Reset progress after successful upload
+        }
+      );
     }
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const { hostelName, hostelOwner, hostelOwnerContact, hostelImages, hostelLocation, boardingType, boardingTime, boardingDate, marketingPerson } = formData;
+
+    const { hostelName, hostelOwner, hostelOwnerContact, hostelImages, hostelLocation, boardingType, boardingTime, boardingDate, marketingPerson, latitude, longitude } = formData;
+
     let formErrors = {};
 
+    // Validation checks
     if (!hostelName) formErrors.hostelName = "Hostel Name is required";
     if (!hostelOwner) formErrors.hostelOwner = "Hostel Owner is required";
     if (!hostelOwnerContact || !/^\d{10}$/.test(hostelOwnerContact)) {
       formErrors.hostelOwnerContact = "Contact Number must be exactly 10 digits";
     }
-
     if (!hostelImages) formErrors.hostelImages = "Hostel Image is required";
-
     if (!hostelLocation) formErrors.hostelLocation = "Hostel Location is required";
     if (!boardingType) formErrors.boardingType = "Boarding Type is required";
     if (!boardingTime) formErrors.boardingTime = "Boarding Time is required";
     if (!boardingDate) formErrors.boardingDate = "Boarding Date is required";
     if (!marketingPerson) formErrors.marketingPerson = "Marketing Person is required";
+    if (!latitude) formErrors.latitude = "Latitude is required";
+    if (!longitude) formErrors.longitude = "Longitude is required";
 
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
@@ -108,6 +128,7 @@ const Dashboardpage = () => {
     }
 
     setIsSubmitting(true);
+
     try {
       const newHostelRef = push(ref(database, 'hostels'));
       await set(newHostelRef, {
@@ -121,7 +142,10 @@ const Dashboardpage = () => {
         boardingDate,
         marketingPerson,
         userEmail,
+        latitude,
+        longitude,
       });
+
       setFormData({
         hostelName: '',
         hostelOwner: '',
@@ -132,7 +156,10 @@ const Dashboardpage = () => {
         boardingTime: '',
         boardingDate: '',
         marketingPerson: userFirstName,
+        latitude: '',
+        longitude: '',
       });
+      setErrors({});
       fetchHostelData();
       setShowForm(false);
     } catch (e) {
@@ -142,6 +169,27 @@ const Dashboardpage = () => {
       setIsSubmitting(false);
     }
   };
+  const resetForm = () => {
+    setFormData({
+      hostelName: '',
+      hostelOwner: '',
+      hostelOwnerContact: '',
+      hostelImages: null,
+      hostelLocation: '',
+      boardingType: '',
+      boardingTime: '',
+      boardingDate: '',
+      marketingPerson: userFirstName,
+      latitude: '',
+      longitude: '',
+    });
+    setErrors({});
+  };
+
+  useEffect(() => {
+    fetchHostelData();
+  }, [userEmail, filter, startDate, endDate, nameFilter]); // Added nameFilter
+
 
 
   function sortVisitsByDateTime(visits) {
@@ -161,24 +209,24 @@ const Dashboardpage = () => {
     onValue(hostelsRef, (snapshot) => {
       const data = snapshot.val();
       console.log(data, "EntireHostel");
-  
+
       let hostels = data ? Object.entries(data)
         .filter(([id, hostel]) => hostel.userEmail === userEmail)
         .map(([id, hostel]) => {
-          // Extract and sort visits for this hostel
           const sortedVisits = hostel.visits ? sortVisitsByDateTime(hostel.visits) : [];
           return { id, ...hostel, visits: sortedVisits };
         }) : [];
-  
-      // Create a new variable to hold filtered hostels
-      let filteredHostels = hostels;
-  
+
       // Apply filters
+      let filteredHostels = hostels;
+
       if (filter) {
         filteredHostels = filteredHostels.filter(hostel => hostel.boardingType === filter);
       }
       if (nameFilter) {
-        filteredHostels = filteredHostels.filter(hostel => hostel.hostelName.toLowerCase().includes(nameFilter.toLowerCase()));
+        filteredHostels = filteredHostels.filter(hostel =>
+          hostel.hostelName.toLowerCase().includes(nameFilter.toLowerCase())
+        );
       }
       if (startDate) {
         filteredHostels = filteredHostels.filter(hostel => new Date(hostel.boardingDate) >= new Date(startDate));
@@ -186,12 +234,15 @@ const Dashboardpage = () => {
       if (endDate) {
         filteredHostels = filteredHostels.filter(hostel => new Date(hostel.boardingDate) <= new Date(endDate));
       }
-  
+
       console.log(filteredHostels, "FilteredHostel");
       setHostelData(filteredHostels);
     });
   };
-  
+
+
+
+
 
 
   const handleFetchLocation = () => {
@@ -199,40 +250,39 @@ const Dashboardpage = () => {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          try {
-            // Use the Google Maps Geocoding API to get address details
-            const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=YOUR_GOOGLE_API_KEY`);
-            const data = await response.json();
-  
-            if (data.status === 'OK') {
-              // Extract the address or name from the response
-              const addressComponents = data.results[0].address_components;
-              const formattedAddress = data.results[0].formatted_address;
-  
-              // Optionally, find more specific details from addressComponents if needed
-              setFormData((prevData) => ({
-                ...prevData,
-                hostelLocation: formattedAddress, // Or any specific part of addressComponents
-              }));
-            } else {
-              console.error("Error fetching location: ", data.status);
-              setErrors({ general: "Error fetching location" });
-            }
-          } catch (error) {
-            console.error("Error fetching location: ", error);
-            setErrors({ general: "Error fetching location" });
-          }
+          console.log(latitude, longitude, "exact")
+          setFormData((prevData) => ({
+            ...prevData,
+            latitude: latitude.toFixed(6),  // Format latitude
+            longitude: longitude.toFixed(6) // Format longitude
+          }));
+          setExactLocation({
+            latitude: latitude,
+            longitude: longitude
+          })
+
         },
         (error) => {
-          console.error("Error fetching location: ", error);
-          setErrors({ general: "Error fetching location" });
+          console.error("Error fetching geolocation: ", error);
+          setErrors({ general: "Error fetching geolocation: " + error.message });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
         }
       );
     } else {
       setErrors({ general: "Geolocation is not supported by this browser." });
     }
   };
-  
+
+
+
+
+
+
+
 
   const handleLogout = async () => {
     try {
@@ -244,20 +294,20 @@ const Dashboardpage = () => {
       console.error("Error signing out: ", error);
     }
   };
-  const getMapsUrl = (location) => {
-    return location ? `https://www.google.com/maps?q=${location}` : '#';
+  const getMapsUrl = (latitude, longitude) => {
+    return latitude && longitude ? `https://www.google.com/maps?q=${latitude},${longitude}` : '#';
   };
+
 
   return (
     <div className="dashboard-container">
       <div className="sticky-header">
         <div className="welcome-message">
-          <h3>Welcome, </h3>
-          <h4>{userFirstName}</h4>
+          <h4>Welcome, </h4>
+          <h4 >{userFirstName}</h4>
         </div>
-        <button onClick={() => setShowForm(true)} className="button-addhostel">
-          Add Hostel
-        </button>
+        <button onClick={() => { resetForm(); setShowForm(true); }} className="add-hostel-btn">Add Hostel</button>
+
         <button onClick={handleLogout} className="button-logout">
           Logout
         </button>
@@ -266,21 +316,21 @@ const Dashboardpage = () => {
       {showForm && (
         <div className="modal">
           <div className="modal-content">
-            <div><span className="close1" onClick={() => setShowForm(false)}>&times;</span></div>
             <form className="hostel-form" onSubmit={handleFormSubmit}>
               <input
                 type="text"
                 placeholder="Hostel Name"
+                style={{ width: '100%', height: '22px', marginBottom: '10px' }}
                 name="hostelName"
                 value={formData.hostelName}
                 onChange={handleInputChange}
               />
               {errors.hostelName && <div className="error-text">{errors.hostelName}</div>}
 
-
               <input
                 type="text"
                 placeholder="Hostel Owner"
+                style={{ width: '100%', height: '22px', marginBottom: '10px' }}
                 name="hostelOwner"
                 value={formData.hostelOwner}
                 onChange={handleInputChange}
@@ -290,69 +340,79 @@ const Dashboardpage = () => {
               <input
                 type="tel"
                 placeholder="Contact Number"
+                style={{ width: '100%', height: '22px', marginBottom: '10px' }}
                 name="hostelOwnerContact"
                 value={formData.hostelOwnerContact}
                 onChange={handleInputChange}
                 maxLength="10"
                 pattern="\d{10}"
               />
-
               {errors.hostelOwnerContact && <div className="error-text">{errors.hostelOwnerContact}</div>}
 
               <input
                 type="file"
                 id="imageUpload"
                 name='hostelImages'
-                accept="image/*"
-                style={{ display: 'none' }}
+                accept=".png,.jpeg,.jpg"
                 onChange={handleImageChange}
+                style={{ marginBottom: '10px' }}
               />
-
-
-              <div className="image-upload-section">
-                <label htmlFor="imageUpload" className="image-upload-label">
-                  <i className="fas fa-camera"></i> {/* Camera icon */}
-                  Upload or Take a Photo
-                </label>
-                {formData.hostelImages && (
-                  <img
-                    src={formData.hostelImages}
-                    alt="Hostel Preview"
-                    className="image-preview"
-                    height="100px"
-                    width="100px"
-                  />
-                )}
-                {errors.hostelImages && <div className="error-text">{errors.hostelImages}</div>}
-              </div>
+              {errors.hostelImages && <div className="error-text">{errors.hostelImages}</div>}
 
               <input
                 type="text"
                 placeholder="Hostel Location"
+                style={{ width: '100%', height: '22px', marginBottom: '10px' }}
                 name="hostelLocation"
                 value={formData.hostelLocation}
                 onChange={handleInputChange}
               />
-              <button type="button" onClick={handleFetchLocation}>
+              {errors.hostelLocation && <div className="error-text">{errors.hostelLocation}</div>}
+
+              <button
+                type="button"
+                onClick={handleFetchLocation}
+                style={{ width: '100%', height: '22px', marginBottom: '10px' }}
+              >
                 <i className="fas fa-location-arrow"></i> {/* Location icon */}
               </button>
-              {errors.hostelLocation && <div className="error-text">{errors.hostelLocation}</div>}
+
+              <input
+                type="text"
+                placeholder="Latitude"
+                style={{ width: '100%', height: '22px', marginBottom: '10px' }}
+                name="latitude"
+                value={formData.latitude}
+                onChange={handleInputChange}
+                readOnly
+              />
+
+              <input
+                type="text"
+                placeholder="Longitude"
+                style={{ width: '100%', height: '22px', marginBottom: '10px' }}
+                name="longitude"
+                value={formData.longitude}
+                onChange={handleInputChange}
+                readOnly
+              />
 
               <select
                 name="boardingType"
                 value={formData.boardingType}
                 onChange={handleInputChange}
+                style={{ width: '100%', height: '22px', marginBottom: '10px' }}
               >
                 <option value="">Select Boarding Type</option>
                 <option value="Onboarding">Onboarding</option>
                 <option value="Visiting">Visiting</option>
               </select>
               {errors.boardingType && <div className="error-text">{errors.boardingType}</div>}
-              
 
               <input
                 type="time"
                 placeholder="Boarding Time"
+                style={{ width: '100%', height: '22px', marginBottom: '10px' }}
                 name="boardingTime"
                 value={formData.boardingTime}
                 onChange={handleInputChange}
@@ -362,6 +422,7 @@ const Dashboardpage = () => {
               <input
                 type="date"
                 placeholder="Boarding Date"
+                style={{ width: '100%', height: '22px', marginBottom: '10px' }}
                 name="boardingDate"
                 value={formData.boardingDate}
                 onChange={handleInputChange}
@@ -371,41 +432,74 @@ const Dashboardpage = () => {
               <input
                 type="text"
                 placeholder="Marketing Person"
+                style={{ width: '100%', height: '22px', marginBottom: '10px' }}
                 name="marketingPerson"
                 value={formData.marketingPerson}
                 onChange={handleInputChange}
                 disabled
               />
 
-              <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Submitting...' : 'Submit'}
-              </button>
-              {errors.general && <div className="error-text">{errors.general}</div>}
+              <div className="button-container" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{
+                    width: '100px',
+                    height: '30px',
+                    backgroundColor: "#0056b3",
+                    color: "white",
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit'}
+                </button>
+                <button
+                  className="close1"
+                  onClick={() => setShowForm(false)}
+                  style={{
+                    width: '100px',
+                    height: '30px',
+                    backgroundColor: "green",
+                    color: "white",
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    marginLeft: '10px'
+                  }}
+                >
+                  Close
+                </button>
+              </div>
             </form>
           </div>
         </div>
       )}
 
-<div className="filter-container">
+
+      <div className="filter-container">
         <div className="filter-options">
           <div className='filter-item-filter'>
-          <div className='filter-item'>
-            <p>Select Category:</p>
-            <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ width: '150px', height: '30px' }}>
-              <option value="">All</option>
-              <option value="Onboarding">Onboarding</option>
-              <option value="Visiting">Visiting</option>
-            </select>
-          </div>
-          <div className='filter-item'>
-            <p>Hostel Name:</p>
-            <input
-              type="text"
-              value={nameFilter}
-              onChange={(e) => setNameFilter(e.target.value)}
-              placeholder="Filter by hostel name" style={{ width: '150px', height: '23px',marginRight:'15px' ,borderRadius:'8px'}}
-            />
-          </div>
+            <div className='filter-item'>
+              <p>Select Category:</p>
+              <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ width: '100px', height: '25px' }}>
+                <option value="">All</option>
+                <option value="Onboarding">Onboarding</option>
+                <option value="Visiting">Visiting</option>
+              </select>
+            </div>
+            
+              <div className='filter-item'>
+                <p>Hostel Name:</p>
+                <input
+                  type="text"
+                  value={nameFilter}
+                  onChange={(e) => setNameFilter(e.target.value)}
+                  placeholder="Search for Hostel"
+                  style={{ width: '150px', height: '23px', marginRight: '15px', borderRadius: '8px' }}
+                />
+              </div>
           </div>
           <div className='filter-container-filter'>
             <div className='filter-item'>
@@ -414,7 +508,7 @@ const Dashboardpage = () => {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                placeholder="Start Date" style={{ width: '150px', height: '30px' ,marginRight:'15px'}}
+                placeholder="Start Date" style={{ width: '100px', height: '25px', marginRight: '15px' }}
               />
             </div>
             <div className='filter-item'>
@@ -423,63 +517,67 @@ const Dashboardpage = () => {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                placeholder="End Date" style={{ width: '150px', height: '30px' }}
+                placeholder="End Date" style={{ width: '100px', height: '25px' }}
               />
             </div>
           </div>
-          
+
         </div>
-      </div> 
+      </div>
 
       <div className="hostel-list">
-      {hostelData.length > 0 ? (
-        hostelData.map((hostel, index) => (
-          <div
-            key={index}
-            className="hostel-card"
-            onClick={() => setSelectedHostel(hostel)}
-          >
-            <h2>{hostel.hostelName}</h2>
-            <p>Owner: {hostel.hostelOwner}</p>
-            <p>Contact: {hostel.hostelOwnerContact}</p>
-            <p>Location: {hostel.hostelLocation}</p>
-            <button
-              onClick={() => window.open(getMapsUrl(hostel.hostelLocation), '_blank')}
-              disabled={!hostel.hostelLocation}
+        {hostelData.length > 0 ? (
+          hostelData.map((hostel, index) => (
+            <div
+              key={index}
+              className="hostel-card"
+              onClick={() => setSelectedHostel(hostel)}
             >
-              Open in Google Maps
-            </button>
-            <p>Type: {hostel.boardingType}</p>
-            <p>Time: {hostel.boardingTime}</p>
-            <p>Date: {hostel.boardingDate}</p>
-            <p>Marketing Person: {hostel.marketingPerson}</p>
-            {hostel.hostelImages && <img src={hostel.hostelImages} alt="Hostel" className="hostel-image" height="100px" width="100px" />}
-            {hostel.visits && hostel.visits.map((eachVisit, index) => (
-              <React.Fragment key={index}>
-                <h3>Visit : {index + 1}</h3>
-                <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px' }}>
-                    <h4 style={{ margin: 0, marginRight: '5px' }}>VisitDate:</h4>
-                    <p style={{ margin: 0 }}>{eachVisit.visitDate}</p>
+              <h2>{hostel.hostelName}</h2>
+              <p>Owner: {hostel.hostelOwner}</p>
+              <p>Contact: {hostel.hostelOwnerContact}</p>
+              <p>Location: {hostel.hostelLocation}</p>
+              {/* <p>Latitude: {hostel.latitude}</p>
+            <p>Longitude: {hostel.longitude}</p> */}
+              {/* 17.439806485683757, 78.45404950164833 */}
+              <button
+                onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
+                disabled={!hostel.latitude || !hostel.longitude}
+              >
+                Open in Google Maps
+              </button>
+
+              <p>Type: {hostel.boardingType}</p>
+              <p>Time: {hostel.boardingTime}</p>
+              <p>Date: {hostel.boardingDate}</p>
+              <p>Marketing Person: {hostel.marketingPerson}</p>
+              {hostel.hostelImages && <img src={hostel.hostelImages} alt="Hostel" className="hostel-image" height="100px" width="100px" />}
+              {hostel.visits && hostel.visits.map((eachVisit, index) => (
+                <React.Fragment key={index}>
+                  <h3>Visit : {index + 1}</h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px' }}>
+                      <h4 style={{ margin: 0, marginRight: '5px' }}>VisitDate:</h4>
+                      <p style={{ margin: 0 }}>{eachVisit.visitDate}</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px' }}>
+                      <h4 style={{ margin: 0, marginRight: '5px' }}>VisitTime:</h4>
+                      <p style={{ margin: 0 }}>{eachVisit.visitTime}</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <h4 style={{ margin: 0, marginRight: '5px' }}>Updation:</h4>
+                      <p style={{ margin: 0 }}>{eachVisit.comments}</p>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', marginRight: '20px' }}>
-                    <h4 style={{ margin: 0, marginRight: '5px' }}>VisitTime:</h4>
-                    <p style={{ margin: 0 }}>{eachVisit.visitTime}</p>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <h4 style={{ margin: 0, marginRight: '5px' }}>Updation:</h4>
-                    <p style={{ margin: 0 }}>{eachVisit.comments}</p>
-                  </div>
-                </div>
-              </React.Fragment>
-            ))}
-           
-          </div>
-        ))
-      ) : (
-        <p>No hostels found</p>
-      )}
-    </div>
+                </React.Fragment>
+              ))}
+
+            </div>
+          ))
+        ) : (
+          <p>No hostels found</p>
+        )}
+      </div>
 
       {selectedHostel && (
         <HostelDetailsPopup
@@ -501,34 +599,44 @@ const Dashboardpage = () => {
 
 
 
+
+
+
+
+
+
+
 const HostelDetailsPopup = ({ hostel, onClose }) => {
   const [showAdditionalFields, setShowAdditionalFields] = useState(false);
   const [visitDate, setVisitDate] = useState('');
   const [visitTime, setVisitTime] = useState('');
   const [comments, setComments] = useState('');
+  const [typeOfBoarding, setTypeOfBoarding] = useState(hostel.boardingType || '');
 
-  const handleRadioChange = (e) => {
-    setShowAdditionalFields(e.target.checked);
+  const handleBoardingTypeChange = (e) => {
+    const newBoardingType = e.target.value;
+
+    // Confirm with user before changing boarding type
+    const confirmChange = window.confirm('Are you sure you want to switch to Onboarding?');
+    if (confirmChange) {
+      setTypeOfBoarding(newBoardingType);
+
+      // Update Firebase with the new boarding type
+      update(ref(database, `hostels/${hostel.id}`), { boardingType: newBoardingType })
+        .then(() => console.log('Boarding type updated successfully'))
+        .catch((error) => console.error('Error updating boarding type:', error));
+    }
   };
 
-  const handleVisitDateChange = (e) => {
-    setVisitDate(e.target.value);
-  };
-
-  const handleVisitTimeChange = (e) => {
-    setVisitTime(e.target.value);
-  };
-
-  const handleCommentsChange = (e) => {
-    setComments(e.target.value);
-  };
+  const handleVisitDateChange = (e) => setVisitDate(e.target.value);
+  const handleVisitTimeChange = (e) => setVisitTime(e.target.value);
+  const handleCommentsChange = (e) => setComments(e.target.value);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (visitDate && visitTime && comments) {
       try {
-        // Create visit details object
         const visitDetails = {
           visitDate,
           visitTime,
@@ -536,20 +644,16 @@ const HostelDetailsPopup = ({ hostel, onClose }) => {
           createdAt: new Date().toISOString(),
         };
 
-        // Reference to the Firestore document for the 
-        await push(ref(database, `hostels/${hostel.id}/visits`), visitDetails)
-
-
-
+        // Reference to the Firestore document for the hostel
+        await push(ref(database, `hostels/${hostel.id}/visits`), visitDetails);
 
         alert('Visit details submitted successfully!');
-        onClose()
+        onClose();
 
-        // Reset the form but keep the popup open for another submission
         setVisitDate('');
         setVisitTime('');
         setComments('');
-        setShowAdditionalFields(true); // Keep the additional fields open for the next input
+        setShowAdditionalFields(true);
       } catch (error) {
         console.error('Error submitting visit details:', error);
         alert('Failed to submit visit details. Please try again.');
@@ -564,13 +668,66 @@ const HostelDetailsPopup = ({ hostel, onClose }) => {
       <div className="popup-content">
         <span className="close" onClick={onClose}>&times;</span>
         <h2>{hostel.hostelName}</h2>
-        <p>Owner: {hostel.hostelOwner}</p>
-        <p>Contact: {hostel.hostelOwnerContact}</p>
-        <p>Location: {hostel.hostelLocation}</p>
-        <p>Type: {hostel.boardingType}</p>
-        <p>Time: {hostel.boardingTime}</p>
-        <p>Date: {hostel.boardingDate}</p>
-        <p>Marketing Person: {hostel.marketingPerson}</p>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+            <h4 style={{ margin: 0, marginRight: '8px' }}>Owner:</h4>
+            <p style={{ margin: 0 }}>{hostel.hostelOwner}</p>
+          </div>
+        </div>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+            <h4 style={{ margin: 0, marginRight: '8px' }}>Contact:</h4>
+            <p style={{ margin: 0 }}>{hostel.hostelOwnerContact}</p>
+          </div>
+        </div>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+            <h4 style={{ margin: 0, marginRight: '8px' }}>Location:</h4>
+            <p style={{ margin: 0 }}>{hostel.hostelLocation}</p>
+          </div>
+        </div>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+            <h4 style={{ margin: 0, marginRight: '8px' }}>Type of Boarding: </h4>
+            <p style={{ margin: 0 }}>{typeOfBoarding}</p>
+          </div>
+        </div>
+
+        {typeOfBoarding === 'Visiting' && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <input
+                type='radio'
+                id='switch-to-onboarding'
+                name='boardingType'
+                value='Onboarding'
+                checked={typeOfBoarding === 'Onboarding'}
+                onChange={handleBoardingTypeChange}
+                style={{ marginRight: '8px', marginBottom: '10px' }}
+              />
+              <p style={{ margin: 0 }}>Switch to Onboarding</p>
+            </div>
+          </div>
+        )}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+            <h4 style={{ margin: 0, marginRight: '8px' }}>Time: </h4>
+            <p style={{ margin: 0 }}>{hostel.boardingTime}</p>
+          </div>
+        </div>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+            <h4 style={{ margin: 0, marginRight: '8px' }}>Date: </h4>
+            <p style={{ margin: 0 }}>{hostel.boardingDate}</p>
+          </div>
+        </div>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+            <h4 style={{ margin: 0, marginRight: '8px' }}>Marketing Person: </h4>
+            <p style={{ margin: 0 }}>{hostel.marketingPerson}</p>
+          </div>
+        </div>
+
         {hostel.hostelImages && (
           <img src={hostel.hostelImages} alt="Hostel" className="popup-image" height="100px" width="100px" />
         )}
@@ -581,7 +738,7 @@ const HostelDetailsPopup = ({ hostel, onClose }) => {
               type="checkbox"
               id="visiting"
               checked={showAdditionalFields}
-              onChange={handleRadioChange}
+              onChange={(e) => setShowAdditionalFields(e.target.checked)}
             />
             <label htmlFor="visiting">Again Visiting the Hostel</label>
           </div>
@@ -617,6 +774,10 @@ const HostelDetailsPopup = ({ hostel, onClose }) => {
     </div>
   );
 };
+
+
+
+
 
 
 
