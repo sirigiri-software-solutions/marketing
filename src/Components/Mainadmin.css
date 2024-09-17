@@ -109,6 +109,12 @@
     .filter-section {
       flex-direction: column;
       align-items: stretch;
+      position: fixed;
+      height: auto;
+    }
+    .all-hostels-container{
+      
+      top:190px;
     }
   
     .filter-section > * {

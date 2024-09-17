@@ -294,6 +294,8 @@ const Dashboardpage = () => {
       console.error("Error signing out: ", error);
     }
   };
+
+
   const getMapsUrl = (latitude, longitude) => {
     return latitude && longitude ? `https://www.google.com/maps?q=${latitude},${longitude}` : '#';
   };
@@ -418,7 +420,7 @@ const Dashboardpage = () => {
                 onChange={handleInputChange}
               />
               {errors.boardingTime && <div className="error-text">{errors.boardingTime}</div>}
-
+ 
               <input
                 type="date"
                 placeholder="Boarding Date"
@@ -478,6 +480,8 @@ const Dashboardpage = () => {
       )}
 
 
+
+
       <div className="filter-container">
         <div className="filter-options">
           <div className='filter-item-filter'>
@@ -497,7 +501,7 @@ const Dashboardpage = () => {
                   value={nameFilter}
                   onChange={(e) => setNameFilter(e.target.value)}
                   placeholder="Search for Hostel"
-                  style={{ width: '150px', height: '23px', marginRight: '15px', borderRadius: '8px' }}
+                  style={{ width: '100px', height: '23px', marginRight: '15px', borderRadius: '8px' }}
                 />
               </div>
           </div>
@@ -525,6 +529,10 @@ const Dashboardpage = () => {
         </div>
       </div>
 
+
+
+
+
       <div className="hostel-list">
         {hostelData.length > 0 ? (
           hostelData.map((hostel, index) => (
@@ -534,15 +542,22 @@ const Dashboardpage = () => {
               onClick={() => setSelectedHostel(hostel)}
             >
               <h2>{hostel.hostelName}</h2>
-              <p>Owner: {hostel.hostelOwner}</p>
-              <p>Contact: {hostel.hostelOwnerContact}</p>
+              <p>Owner Name: {hostel.hostelOwner}</p>
+              <p>Contact Number: {hostel.hostelOwnerContact}</p>
               <p>Location: {hostel.hostelLocation}</p>
-              {/* <p>Latitude: {hostel.latitude}</p>
-            <p>Longitude: {hostel.longitude}</p> */}
-              {/* 17.439806485683757, 78.45404950164833 */}
-              <button
+             
+              <button 
                 onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
                 disabled={!hostel.latitude || !hostel.longitude}
+                style={{
+                  width: '200px',
+                  height: '30px',
+                  backgroundColor: hostel.latitude && hostel.longitude ? "#0056b3" : "gray",
+                  color: "white",
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
+                }}
               >
                 Open in Google Maps
               </button>
@@ -670,13 +685,13 @@ const HostelDetailsPopup = ({ hostel, onClose }) => {
         <h2>{hostel.hostelName}</h2>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-            <h4 style={{ margin: 0, marginRight: '8px' }}>Owner:</h4>
+            <h4 style={{ margin: 0, marginRight: '8px' }}>Owner Name:</h4>
             <p style={{ margin: 0 }}>{hostel.hostelOwner}</p>
           </div>
         </div>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-            <h4 style={{ margin: 0, marginRight: '8px' }}>Contact:</h4>
+            <h4 style={{ margin: 0, marginRight: '8px' }}>Contact Number:</h4>
             <p style={{ margin: 0 }}>{hostel.hostelOwnerContact}</p>
           </div>
         </div>

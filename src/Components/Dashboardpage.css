@@ -119,16 +119,87 @@
   cursor: pointer;
 }
 
+/* Add this CSS to your styles */
+
 .filter-container {
-  
-  background-color: rgb(219, 211, 211);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
+
+.filter-item {
+  margin-bottom: 10px;
+}
+
+.hostel-card {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .filter-options {
+    flex-direction: column;
+  }
+  .filter-item-filter,
+  .filter-container-filter {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .filter-item input,
+  .filter-item select {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
+
+.hostel-image {
+  width: 100%;
+  height: auto;
+  margin-top: 10px;
+}
+
+/* Make sure the overall container doesn't overflow */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 480px) {
+  .filter-container,
+  .filter-options {
+    flex-direction: column;
+    background-color: rgb(139, 152, 163);
+  }
+
+  .filter-item-filter,
+  .filter-container-filter {
+    width: 100%;
+  }
+
+  .filter-item input,
+  .filter-item select {
+    width: 100%;
+  }
+
+  .hostel-card {
+    width: 100%;
+  }
+}
+
 
 .filter-options {
   display: flex;
   flex-direction: row;
 
-  gap: 5px;
+
   
 }
 
@@ -150,7 +221,7 @@
 
 .hostel-card {
   border: 1px solid #ddd;
-  padding: 10px;
+  
   border-radius: 5px;
 }
 
@@ -294,4 +365,33 @@
   cursor: pointer;
   border: none;
  
+}
+
+
+/* Responsive styling for mobile view */
+@media (max-width: 600px) {
+  .dashboard-container {
+    padding: 10px;
+  }
+
+  .boys-hostel-heading {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .add-hostel-btn {
+    display: block;
+    
+   
+    padding: 6px;
+    font-size: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+  }
 }
