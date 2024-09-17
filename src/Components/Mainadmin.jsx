@@ -1,469 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import { ref, onValue } from 'firebase/database';
-// import { format } from 'date-fns';
-// import DatePicker from 'react-datepicker';
-// import 'react-datepicker/dist/react-datepicker.css';
-// import { database } from '../Firebase';
-// import { useNavigate } from 'react-router-dom';
-// import './Mainadmin.css';
-
-// const Mainadmin = () => {
-//   const [hostels, setHostels] = useState([]);
-//   const [filteredHostels, setFilteredHostels] = useState([]);
-//   const [filters, setFilters] = useState({
-//     marketingPerson: '',
-//     boardingType: '',
-//     hostelLocation: '',
-//     boardingDate: null,
-//   });
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-//   const [selectedHostel, setSelectedHostel] = useState(null);
-//   const [verification, setVerification] = useState({
-//     hostelName: '',
-//     hostelOwner: '',
-//     hostelLocation: '',
-//     contactNumber: '',
-//     boardingType: '',
-//     boardingDate: '',
-//     marketingPerson: '',
-//     hostelImages: '',
-//   });
-
-//   const navigate = useNavigate();
-
-//   useEffect(() => {
-//     const fetchHostelData = () => {
-//       const hostelsRef = ref(database, 'hostels');
-//       onValue(hostelsRef, (snapshot) => {
-//         const data = snapshot.val();
-//         const hostelsList = data ? Object.values(data) : [];
-//         setHostels(hostelsList);
-//         setFilteredHostels(hostelsList);
-//       });
-//     };
-
-//     fetchHostelData();
-//   }, []);
-
-//   const handleFilterChange = (e) => {
-//     const { name, value } = e.target;
-//     setFilters((prevFilters) => ({
-//       ...prevFilters,
-//       [name]: value,
-//     }));
-//   };
-
-//   const handleDateChange = (date) => {
-//     setFilters((prevFilters) => ({
-//       ...prevFilters,
-//       boardingDate: date,
-//     }));
-//   };
-
-//   useEffect(() => {
-//     const applyFilters = () => {
-//       let filtered = hostels;
-//       if (filters.marketingPerson) {
-//         filtered = filtered.filter((hostel) =>
-//           hostel.marketingPerson.toLowerCase().includes(filters.marketingPerson.toLowerCase())
-//         );
-//       }
-//       if (filters.boardingType) {
-//         filtered = filtered.filter((hostel) => hostel.boardingType === filters.boardingType);
-//       }
-//       if (filters.hostelLocation) {
-//         filtered = filtered.filter((hostel) =>
-//           hostel.hostelLocation.toLowerCase().includes(filters.hostelLocation.toLowerCase())
-//         );
-//       }
-//       if (filters.boardingDate) {
-//         filtered = filtered.filter((hostel) => {
-//           const hostelDate = new Date(hostel.boardingDate);
-//           return hostelDate.toDateString() === filters.boardingDate.toDateString();
-//         });
-//       }
-//       setFilteredHostels(filtered);
-//     };
-
-//     applyFilters();
-//   }, [filters, hostels]);
-
-//   const handleLogout = () => {
-//     navigate('/');
-//   };
-
-//   const openModal = (hostel) => {
-//     setSelectedHostel(hostel);
-//     setVerification({
-//       hostelName: '',
-//       hostelOwner: '',
-//       hostelLocation: '',
-//       contactNumber: '',
-//       boardingType: '',
-//       boardingDate: '',
-//       marketingPerson: '',
-//       hostelImages: '',
-//     });
-//     setIsModalOpen(true);
-//   };
-
-//   const closeModal = () => {
-//     setIsModalOpen(false);
-//     setSelectedHostel(null);
-//   };
-
-//   const handleRadioChange = (section, value) => {
-//     setVerification(prev => ({
-//       ...prev,
-//       [section]: value,
-//     }));
-//   };
-
-//   return (
-//     <div className="all-hostels-container">
-//       <button className="logout-button" onClick={handleLogout}>
-//         Logout
-//       </button>
-//       <h1>All Hostels Data</h1>
-
-//       <div className="filter-section">
-//         <input
-//           type="text"
-//           placeholder="Marketing Person"
-//           name="marketingPerson"
-//           value={filters.marketingPerson}
-//           onChange={handleFilterChange}
-//         />
-//         <select
-//           name="boardingType"
-//           value={filters.boardingType}
-//           onChange={handleFilterChange}
-//         >
-//           <option value="">All Boarding Types</option>
-//           <option value="OnBoarding">OnBoarding</option>
-//           <option value="Visiting">Visiting</option>
-//         </select>
-//         <input
-//           type="text"
-//           placeholder="Hostel Location"
-//           name="hostelLocation"
-//           value={filters.hostelLocation}
-//           onChange={handleFilterChange}
-//         />
-//         <DatePicker
-//           selected={filters.boardingDate}
-//           onChange={handleDateChange}
-//           placeholderText="Select Boarding Date"
-//         />
-//       </div>
-
-//       {/* Table for larger screens */}
-//       <div className="hostels-table-wrapper">
-//         <table className="hostels-table">
-//           <thead>
-//             <tr>
-//               <th>Hostel Name</th>
-//               <th>Hostel Owner</th>
-//               <th>Hostel Location</th>
-//               <th>Contact Number</th>
-//               <th>Boarding Type</th>
-//               <th>Boarding Date</th>
-//               <th>Marketing Person</th>
-//               <th>Hostel Images</th>
-//               <th>Verification</th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {filteredHostels.length > 0 ? (
-//               filteredHostels.map((hostel, index) => (
-//                 <tr key={index}>
-//                   <td>{hostel.hostelName}</td>
-//                   <td>{hostel.hostelOwner}</td>
-//                   <td>{hostel.hostelLocation}</td>
-//                   <td>{hostel.hostelOwnerContact}</td>
-//                   <td>{hostel.boardingType}</td>
-//                   <td>{hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</td>
-//                   <td>{hostel.marketingPerson}</td>
-//                   <td>
-//                     {hostel.hostelImages ? (
-//                       <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" />
-//                     ) : (
-//                       'No Image'
-//                     )}
-//                   </td>
-//                   <td>
-//                     <button onClick={() => openModal(hostel)} className="verification-button">
-//                       For Verification
-//                     </button>
-//                   </td>
-//                 </tr>
-//               ))
-//             ) : (
-//               <tr>
-//                 <td colSpan="9">No data available</td>
-//               </tr>
-//             )}
-//           </tbody>
-//         </table>
-//       </div>
-
-//       {/* Card layout for smaller screens */}
-//       <div className="hostels-cards">
-//         {filteredHostels.length > 0 ? (
-//           filteredHostels.map((hostel, index) => (
-//             <div className="hostel-card" key={index}>
-//               <h2>{hostel.hostelName}</h2>
-//               <p><strong>Owner:</strong> {hostel.hostelOwner}</p>
-//               <p><strong>Location:</strong> {hostel.hostelLocation}</p>
-//               <p><strong>Contact Number:</strong> {hostel.hostelOwnerContact}</p>
-//               <p><strong>Type:</strong> {hostel.boardingType}</p>
-//               <p><strong>Date:</strong> {hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</p>
-//               <p><strong>Marketing Person:</strong> {hostel.marketingPerson}</p>
-//               <div className="hostel-image-container">
-//                 {hostel.hostelImages ? (
-//                   <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" height="100px" width="100px"/>
-//                 ) : (
-//                   'No Image'
-//                 )}
-//               </div>
-//               <div><button onClick={() => openModal(hostel)} className="verification-button">
-//                       For Verification
-//                     </button></div>
-//             </div>
-//           ))
-//         ) : (
-//           <p>No data available</p>
-//         )}
-//       </div>
-
-//       {/* Modal for verification */}
-//       {isModalOpen && selectedHostel && (
-//         <div className="modal-overlay">
-//           <div className="modal-content">
-//             <button className="close-button" onClick={closeModal}>Close</button>
-//             <h2>{selectedHostel.hostelName}</h2>
-//             <div className="modal-section">
-//               <p><strong>Hostel Name:</strong> {selectedHostel.hostelName}</p>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="hostelName"
-//                   value="yes"
-//                   checked={verification.hostelName === 'yes'}
-//                   onChange={() => handleRadioChange('hostelName', 'yes')}
-//                 />
-//                 Yes
-//               </label>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="hostelName"
-//                   value="no"
-//                   checked={verification.hostelOwner === 'no'}
-//                   onChange={() => handleRadioChange('hostelName', 'no')}
-//                 />
-//                 No
-//               </label>
-//             </div>
-//             <div className="modal-section">
-//               <p><strong>Owner:</strong> {selectedHostel.hostelOwner}</p>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="hostelOwner"
-//                   value="yes"
-//                   checked={verification.hostelOwner === 'yes'}
-//                   onChange={() => handleRadioChange('hostelOwner', 'yes')}
-//                 />
-//                 Yes
-//               </label>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="hostelOwner"
-//                   value="no"
-//                   checked={verification.hostelOwner === 'no'}
-//                   onChange={() => handleRadioChange('hostelOwner', 'no')}
-//                 />
-//                 No
-//               </label>
-//             </div>
-
-//             <div className="modal-section">
-//               <p><strong>Location:</strong> {selectedHostel.hostelLocation}</p>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="hostelLocation"
-//                   value="yes"
-//                   checked={verification.hostelLocation === 'yes'}
-//                   onChange={() => handleRadioChange('hostelLocation', 'yes')}
-//                 />
-//                 Yes
-//               </label>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="hostelLocation"
-//                   value="no"
-//                   checked={verification.hostelLocation === 'no'}
-//                   onChange={() => handleRadioChange('hostelLocation', 'no')}
-//                 />
-//                 No
-//               </label>
-//             </div>
-
-//             <div className="modal-section">
-//               <p><strong>Contact Number:</strong> {selectedHostel.hostelOwnerContact}</p>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="contactNumber"
-//                   value="yes"
-//                   checked={verification.contactNumber === 'yes'}
-//                   onChange={() => handleRadioChange('contactNumber', 'yes')}
-//                 />
-//                 Yes
-//               </label>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="contactNumber"
-//                   value="no"
-//                   checked={verification.contactNumber === 'no'}
-//                   onChange={() => handleRadioChange('contactNumber', 'no')}
-//                 />
-//                 No
-//               </label>
-//             </div>
-
-//             <div className="modal-section">
-//               <p><strong>Boarding Type:</strong> {selectedHostel.boardingType}</p>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="boardingType"
-//                   value="yes"
-//                   checked={verification.boardingType === 'yes'}
-//                   onChange={() => handleRadioChange('boardingType', 'yes')}
-//                 />
-//                 Yes
-//               </label>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="boardingType"
-//                   value="no"
-//                   checked={verification.boardingType === 'no'}
-//                   onChange={() => handleRadioChange('boardingType', 'no')}
-//                 />
-//                 No
-//               </label>
-//             </div>
-
-//             <div className="modal-section">
-//               <p><strong>Boarding Date:</strong> {selectedHostel.boardingDate ? format(new Date(selectedHostel.boardingDate), 'PPP') : 'No Date'}</p>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="boardingDate"
-//                   value="yes"
-//                   checked={verification.boardingDate === 'yes'}
-//                   onChange={() => handleRadioChange('boardingDate', 'yes')}
-//                 />
-//                 Yes
-//               </label>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="boardingDate"
-//                   value="no"
-//                   checked={verification.boardingDate === 'no'}
-//                   onChange={() => handleRadioChange('boardingDate', 'no')}
-//                 />
-//                 No
-//               </label>
-//             </div>
-
-//             <div className="modal-section">
-//               <p><strong>Marketing Person:</strong> {selectedHostel.marketingPerson}</p>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="marketingPerson"
-//                   value="yes"
-//                   checked={verification.marketingPerson === 'yes'}
-//                   onChange={() => handleRadioChange('marketingPerson', 'yes')}
-//                 />
-//                 Yes
-//               </label>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="marketingPerson"
-//                   value="no"
-//                   checked={verification.marketingPerson === 'no'}
-//                   onChange={() => handleRadioChange('marketingPerson', 'no')}
-//                 />
-//                 No
-//               </label>
-//             </div>
-
-//             <div className="modal-section">
-//               <p><strong>Hostel Images:</strong></p>
-//               {selectedHostel.hostelImages ? (
-//                 <img src={selectedHostel.hostelImages} alt={selectedHostel.hostelName} className="hostel-image" />
-//               ) : (
-//                 'No Image'
-//               )}
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="hostelImages"
-//                   value="yes"
-//                   checked={verification.hostelImages === 'yes'}
-//                   onChange={() => handleRadioChange('hostelImages', 'yes')}
-//                 />
-//                 Yes
-//               </label>
-//               <label>
-//                 <input
-//                   type="radio"
-//                   name="hostelImages"
-//                   value="no"
-//                   checked={verification.hostelImages === 'no'}
-//                   onChange={() => handleRadioChange('hostelImages', 'no')}
-//                 />
-//                 No
-//               </label>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default Mainadmin;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -754,7 +288,9 @@ const Mainadmin = () => {
         console.error('Error updating verification data:', error);
       });
   };
-
+  const getMapsUrl = (latitude, longitude) => {
+    return latitude && longitude ? `https://www.google.com/maps?q=${latitude},${longitude}` : '#';
+  };
 
 
 
@@ -766,7 +302,7 @@ const Mainadmin = () => {
 
       <div className="filter-section">
         <div className='uma-uma'>
-          <div style={{ marginRight:'20px' }}><h3>Welcome Admin</h3></div>
+          <div style={{ marginRight:'20px' }}><h3>Welcome SuperAdmin</h3></div>
           <div ><button onClick={handleLogout} className='logout-button' style={{ backgroundColor: 'blue', color: 'white', borderRadius: '8px', border: 'none' }}>
             Logout
           </button>
@@ -838,6 +374,7 @@ const Mainadmin = () => {
               <th>Hostel Name</th>
               <th>Hostel Owner</th>
               <th>Hostel Location</th>
+              <th>Location</th>
               <th>Contact Number</th>
               <th>Boarding Type</th>
               <th>Boarding Date</th>
@@ -853,6 +390,23 @@ const Mainadmin = () => {
                   <td>{hostel.hostelName}</td>
                   <td>{hostel.hostelOwner}</td>
                   <td>{hostel.hostelLocation}</td>
+                  <td>
+                    <button
+                      onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
+                      disabled={!hostel.latitude || !hostel.longitude}
+                      style={{
+                        width: '100px',
+                        height: '30px',
+                        backgroundColor: hostel.latitude && hostel.longitude ? "#0056b3" : "gray",
+                        color: "white",
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
+                      }}
+                    >
+                      Open in Google Maps
+                    </button>
+                  </td>
                   <td>{hostel.hostelOwnerContact}</td>
                   <td>{hostel.boardingType}</td>
                   <td>{hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</td>
@@ -899,6 +453,21 @@ const Mainadmin = () => {
               <h2>{hostel.hostelName}</h2>
               <p><strong>Owner:</strong> {hostel.hostelOwner}</p>
               <p><strong>Location:</strong> {hostel.hostelLocation}</p>
+              <button
+                      onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
+                      disabled={!hostel.latitude || !hostel.longitude}
+                      style={{
+                        width: '80%',
+                        height: '30px',
+                        backgroundColor: hostel.latitude && hostel.longitude ? "#0056b3" : "gray",
+                        color: "white",
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
+                      }}
+                    >
+                      Open in Google Maps
+                    </button>
               <p><strong>Contact Number:</strong> {hostel.hostelOwnerContact}</p>
               <p><strong>Type:</strong> {hostel.boardingType}</p>
               <p><strong>Date:</strong> {hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</p>

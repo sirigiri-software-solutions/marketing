@@ -1,11 +1,12 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { database } from '../Firebase'; // Ensure this path is correct
+import { database } from '../Firebase';
 import { useNavigate } from 'react-router-dom';
 import './Allhostelsdata.css';
 
@@ -21,8 +22,7 @@ const Allhostelsdata = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const hostelsRef = ref(database, 'hostels'); // Replace 'hostels' with your correct path
-
+    const hostelsRef = ref(database, 'hostels');
     const unsubscribe = onValue(hostelsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -36,7 +36,6 @@ const Allhostelsdata = () => {
       }
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
 
@@ -94,65 +93,59 @@ const Allhostelsdata = () => {
     navigate('/');
   };
 
+  const getMapsUrl = (latitude, longitude) => {
+    return latitude && longitude ? `https://www.google.com/maps?q=${latitude},${longitude}` : '#';
+  };
+
   return (
     <div className="all-hostels-container">
+      <div className="filter-section">
+        <div className='uma-uma'>
+          <div style={{ marginRight: '20px' }}><h3>Welcome Admin</h3></div>
+          <div>
+            <button onClick={handleLogout} className='logout-button' style={{ backgroundColor: 'blue', color: 'white', borderRadius: '8px',border:'none',marginRight:'10px' }}>
+              Logout
+            </button>
+          </div>
+        </div>
 
-
-    
-
-<div className="filter-section">
-  <div className='uma-uma'>
-  <div style={{ marginRight:'20px' }}><h3>Welcome Admin</h3></div>
-<div ><button  onClick={handleLogout} className='logout-button' style={{backgroundColor:'blue',color:'white',borderRadius:'8px'}}>
-    Logout
-  </button>
-  </div>
-  </div>
-  
-
-  
-  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-  <input
-    type="text"
-    placeholder="Marketing Person"
-    style={{ width: 'calc(50% - 10px)', height: '22px' ,borderWidth:'2px'}}
-    name="marketingPerson"
-    value={filters.marketingPerson}
-    onChange={handleFilterChange}
-  />
-  <select
-    name="boardingType"
-    style={{ width: 'calc(50% - 10px)', height: '32px',borderWidth:'2px' }}
-    value={filters.boardingType}
-    onChange={handleFilterChange}
-  >
-    <option value="">All Boarding Types</option>
-    <option value="OnBoarding">OnBoarding</option>
-    <option value="Visiting">Visiting</option>
-  </select>
-  <input
-    type="text"
-    placeholder="Hostel Location"
-    style={{ width: 'calc(50% - 10px)', height: '22px',borderWidth:'2px' }}
-    name="hostelLocation"
-    value={filters.hostelLocation}
-    onChange={handleFilterChange}
-  />
-
-  <DatePicker
-    selected={filters.boardingDate}
-   
-    onChange={handleDateChange}
-    placeholderText="Select Boarding Date"
-    style={{ width: 'calc(50% - 10px)', height: '32px',borderWidth:'5px' }}
-  />
-</div>
-
-</div>
-
-
-
-      
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+          <input
+            type="text"
+            placeholder="Marketing Person"
+            style={{ width: 'calc(50% - 10px)', height: '22px', borderWidth: '2px' }}
+            name="marketingPerson"
+            value={filters.marketingPerson}
+            onChange={handleFilterChange}
+          />
+          <select
+            name="boardingType"
+            style={{ width: 'calc(50% - 10px)', height: '32px', borderWidth: '2px' }}
+            value={filters.boardingType}
+            onChange={handleFilterChange}
+          >
+            <option value="">All Boarding Types</option>
+            <option value="OnBoarding">OnBoarding</option>
+            <option value="Visiting">Visiting</option>
+          </select>
+          <div  style={{ display:'flex', flexDirection:'row' }}>
+          <input
+            type="text"
+            placeholder="Hostel Location"
+            style={{ width: 'calc(50% - 10px)', height: '22px', borderWidth: '2px',marginRight:'5px' }}
+            name="hostelLocation"
+            value={filters.hostelLocation}
+            onChange={handleFilterChange}
+          />
+          <DatePicker
+            selected={filters.boardingDate}
+            onChange={handleDateChange}
+            placeholderText="Select Boarding Date"
+            style={{ width: 'calc(50% - 10px)', height: '32px', borderWidth: '5px' }}
+          />
+          </div>
+        </div>
+      </div>
 
       {/* Table for larger screens */}
       <div className="hostels-table-wrapper">
@@ -167,6 +160,7 @@ const Allhostelsdata = () => {
               <th>Boarding Date</th>
               <th>Marketing Person</th>
               <th>Hostel Images</th>
+              <th>Location</th> {/* New column for the location button */}
             </tr>
           </thead>
           <tbody>
@@ -187,11 +181,29 @@ const Allhostelsdata = () => {
                       'No Image'
                     )}
                   </td>
+                  <td>
+                    <button
+                      onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
+                      disabled={!hostel.latitude || !hostel.longitude}
+                      style={{
+                        width: '100px',
+                        height: '30px',
+                        backgroundColor: hostel.latitude && hostel.longitude ? "red" : "gray",
+                        color: "white",
+                        border: 'none',
+                        borderRadius: '5px',
+                        fontSize:'10px',
+                        cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
+                      }}
+                    >
+                      Open in Google Maps
+                    </button>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="8">No data available</td>
+                <td colSpan="9">No data available</td>
               </tr>
             )}
           </tbody>
@@ -206,6 +218,22 @@ const Allhostelsdata = () => {
               <h2>{hostel.hostelName}</h2>
               <p><strong>Owner:</strong> {hostel.hostelOwner}</p>
               <p><strong>Location:</strong> {hostel.hostelLocation}</p>
+              <button
+                onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
+                disabled={!hostel.latitude || !hostel.longitude}
+                style={{
+                  width: '70%',
+                  height: '30px',
+                  backgroundColor: hostel.latitude && hostel.longitude ? "red" : "gray",
+                  color: "white",
+                  fontSize:'13px',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
+                }}
+              >
+                Open in Google Maps
+              </button>
               <p><strong>Contact Number:</strong> {hostel.hostelOwnerContact}</p>
               <p><strong>Type:</strong> {hostel.boardingType}</p>
               <p><strong>Date:</strong> {hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</p>
@@ -217,6 +245,7 @@ const Allhostelsdata = () => {
                   'No Image'
                 )}
               </div>
+             
             </div>
           ))
         ) : (

@@ -6,8 +6,15 @@
 
 /* Filter section */
 .filter-section {
+  
+  top: 0;
   width: 100%;
   height: 100%;
+  position: fixed; /* For Safari */
+ 
+  z-index: 1000;                                                                        
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .logout-button-uma {
@@ -81,4 +88,7 @@
     height: auto;
     border-radius: 4px;
   }
+
+
+
 }
