@@ -98,7 +98,7 @@ const Allhostelsdata = () => {
   };
 
   return (
-    <div className="all-hostels-container">
+    <div className="all-hostels-container-allhostelsdata">
       <div className="filter-section">
         <div className='uma-uma'>
           <div style={{ marginRight: '20px' }}><h3>Welcome Admin</h3></div>
@@ -132,7 +132,7 @@ const Allhostelsdata = () => {
           <input
             type="text"
             placeholder="Hostel Location"
-            style={{ width: 'calc(50% - 10px)', height: '22px', borderWidth: '2px',marginRight:'5px' }}
+            style={{ width: '195px', height: '22px', borderWidth: '2px',marginRight:'10px' }}
             name="hostelLocation"
             value={filters.hostelLocation}
             onChange={handleFilterChange}
@@ -141,7 +141,7 @@ const Allhostelsdata = () => {
             selected={filters.boardingDate}
             onChange={handleDateChange}
             placeholderText="Select Boarding Date"
-            style={{ width: 'calc(50% - 10px)', height: '32px', borderWidth: '5px' }}
+            style={{ width: 'calc(50% - 10px)', height: '32px', borderWidth: '15px' }}
           />
           </div>
         </div>
@@ -211,10 +211,10 @@ const Allhostelsdata = () => {
       </div>
 
       {/* Card layout for smaller screens */}
-      <div className="hostels-cards">
+      <div className="hostels-cards-admin">
         {filteredHostels.length > 0 ? (
           filteredHostels.map((hostel) => (
-            <div className="hostel-card" key={hostel.id}>
+            <div className="hostel-card-admin" key={hostel.id}>
               <h2>{hostel.hostelName}</h2>
               <p><strong>Owner:</strong> {hostel.hostelOwner}</p>
               <p><strong>Location:</strong> {hostel.hostelLocation}</p>
@@ -238,9 +238,9 @@ const Allhostelsdata = () => {
               <p><strong>Type:</strong> {hostel.boardingType}</p>
               <p><strong>Date:</strong> {hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</p>
               <p><strong>Marketing Person:</strong> {hostel.marketingPerson}</p>
-              <div className="hostel-image-container">
+              <div className="hostel-image-container-admin">
                 {hostel.hostelImages ? (
-                  <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image" />
+                  <img src={hostel.hostelImages} alt={hostel.hostelName} className="hostel-image-admin" />
                 ) : (
                   'No Image'
                 )}

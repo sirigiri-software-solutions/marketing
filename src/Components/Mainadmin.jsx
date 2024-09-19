@@ -298,7 +298,7 @@ const Mainadmin = () => {
 
 
   return (
-    <div className="all-hostels-container">
+    <div className="all-hostels-container-mainadmin">
 
       <div className="filter-section">
         <div className='uma-uma'>
@@ -320,6 +320,16 @@ const Mainadmin = () => {
     />
   </div>
   <div style={{ flex: '1 1 calc(50% - 10px)' }}>
+    <input
+      type="text"
+      placeholder="Hostel Location"
+      name="hostelLocation"
+      value={filters.hostelLocation}
+      onChange={handleFilterChange}
+      style={{ width: '100%', height: '32px' }}
+    />
+  </div>
+  <div style={{ flex: '1 1 calc(50% - 10px)' }}>
     <select
       name="boardingType"
       value={filters.boardingType}
@@ -331,16 +341,7 @@ const Mainadmin = () => {
       <option value="Visiting">Visiting</option>
     </select>
   </div>
-  <div style={{ flex: '1 1 calc(50% - 10px)' }}>
-    <input
-      type="text"
-      placeholder="Hostel Location"
-      name="hostelLocation"
-      value={filters.hostelLocation}
-      onChange={handleFilterChange}
-      style={{ width: '100%', height: '32px' }}
-    />
-  </div>
+
   <div style={{ flex: '1 1 calc(50% - 10px)' }}>
     <select
       name="verificationStatus"
