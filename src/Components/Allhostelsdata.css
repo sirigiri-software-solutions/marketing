@@ -1,0 +1,102 @@
+.all-hostels-container-allhostelsdata {
+  font-family: Arial, sans-serif;
+  width: 100%;
+  min-height: 100vh;
+  
+ 
+  box-sizing: border-box;
+}
+
+/* Filter section */
+.filter-section {
+  top: 0;
+  width: 100%;
+  height: auto;
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  flex-wrap: wrap;
+  background-color: white;
+  padding: 10px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+}
+
+/* Cards and Table Layout */
+.hostels-cards-admin {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.hostel-card-admin {
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Admin and Logout Section */
+.uma-uma {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 0; /* Ensure no margin below this div */
+}
+
+/* Hide cards on large screens */
+.hostels-cards-admin {
+  display: none;
+}
+
+/* Mobile view adjustments */
+@media (max-width: 767px) {
+  .hostels-cards-admin {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* Ensure that content starts below the fixed filter section */
+  .all-hostels-container-allhostelsdata {
+    padding-top: 200px; /* Adjust based on the actual height of your filter section */
+  }
+
+  .hostel-card-admin {
+    width: 100%;
+  }
+
+  /* Align admin text and button in a row */
+  .uma-uma {
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+  }
+
+  .logout-button-uma {
+    margin-left: 0;
+    width: auto;
+    margin-right: 10px;
+  }
+
+  h3 {
+    font-size: 18px;
+  }
+
+  .logout-button {
+    font-size: 14px;
+  }
+
+  .hostel-image-admin {
+    height: 100px;
+    width: 100px;
+  }
+}
