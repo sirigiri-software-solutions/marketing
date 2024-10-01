@@ -371,7 +371,7 @@ html, body {
 /* Responsive styling for mobile view */
 @media (max-width: 600px) {
   .dashboard-container {
-    padding: 10px;
+    padding: 0px;
   }
 
   .boys-hostel-heading {
@@ -394,4 +394,5 @@ html, body {
     cursor: pointer;
     text-align: center;
   }
+ 
 }

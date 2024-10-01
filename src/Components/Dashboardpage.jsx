@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useCallback } from 'react';
 import { getAuth, signOut } from 'firebase/auth';
 import { ref, set, push, onValue, update } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage'; // Import Firebase storage functions
 import { database } from '../Firebase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useLocation } from 'react-router-dom';
 import './Dashboardpage.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -40,6 +40,7 @@ const Dashboardpage = () => {
 
   const auth = getAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('email');
@@ -299,7 +300,28 @@ const Dashboardpage = () => {
   const getMapsUrl = (latitude, longitude) => {
     return latitude && longitude ? `https://www.google.com/maps?q=${latitude},${longitude}` : '#';
   };
+  const openForm = () => {
+    resetForm();
+    setShowForm(true);
+    window.history.pushState(null, null, location.pathname); // Prevent back navigation
+  };
 
+  const closeForm = () => {
+    setShowForm(false);
+  };
+
+  const handlePopState = useCallback((event) => {
+    if (showForm) {
+      closeForm(); // Close form on back navigation
+    }
+  }, [showForm]);
+
+  useEffect(() => {
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [handlePopState]);
 
   return (
     <div className="dashboard-container">
@@ -308,7 +330,7 @@ const Dashboardpage = () => {
           <h4>Welcome, </h4>
           <h4 >{userFirstName}</h4>
         </div>
-        <button onClick={() => { resetForm(); setShowForm(true); }} className="add-hostel-btn">Add Hostel</button>
+        <button onClick={openForm}  className="add-hostel-btn">Add Hostel</button>
 
         <button onClick={handleLogout} className="button-logout">
           Logout
@@ -459,7 +481,7 @@ const Dashboardpage = () => {
                 </button>
                 <button
                   className="close1"
-                  onClick={() => setShowForm(false)}
+                  onClick={closeForm}
                   style={{
                     width: '100px',
                     height: '30px',
@@ -546,21 +568,21 @@ const Dashboardpage = () => {
               <p>Contact Number: {hostel.hostelOwnerContact}</p>
               <p>Location: {hostel.hostelLocation}</p>
              
-              <button 
-                onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
-                disabled={!hostel.latitude || !hostel.longitude}
-                style={{
-                  width: '200px',
-                  height: '30px',
-                  backgroundColor: hostel.latitude && hostel.longitude ? "#0056b3" : "gray",
-                  color: "white",
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
-                }}
-              >
-                Open in Google Maps
-              </button>
+              <button
+                      onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
+                      disabled={!hostel.latitude || !hostel.longitude}
+                      style={{
+                        width: '30%',
+                        height: '30px',
+                        backgroundColor: hostel.latitude && hostel.longitude ? "lightblue" : "gray",
+                        color: "#333",
+                        borderWidth: '2px',
+                        borderRadius: '5px',
+                        cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
+                      }}
+                    >
+                      Open in Maps
+                    </button>
 
               <p>Type: {hostel.boardingType}</p>
               <p>Time: {hostel.boardingTime}</p>
@@ -621,12 +643,15 @@ const Dashboardpage = () => {
 
 
 
+
+
 const HostelDetailsPopup = ({ hostel, onClose }) => {
   const [showAdditionalFields, setShowAdditionalFields] = useState(false);
   const [visitDate, setVisitDate] = useState('');
   const [visitTime, setVisitTime] = useState('');
   const [comments, setComments] = useState('');
   const [typeOfBoarding, setTypeOfBoarding] = useState(hostel.boardingType || '');
+  const location = useLocation();
 
   const handleBoardingTypeChange = (e) => {
     const newBoardingType = e.target.value;
@@ -663,12 +688,13 @@ const HostelDetailsPopup = ({ hostel, onClose }) => {
         await push(ref(database, `hostels/${hostel.id}/visits`), visitDetails);
 
         alert('Visit details submitted successfully!');
-        onClose();
+        onClose(); // Close the popup
 
+        // Reset fields
         setVisitDate('');
         setVisitTime('');
         setComments('');
-        setShowAdditionalFields(true);
+        setShowAdditionalFields(false);
       } catch (error) {
         console.error('Error submitting visit details:', error);
         alert('Failed to submit visit details. Please try again.');
@@ -677,6 +703,20 @@ const HostelDetailsPopup = ({ hostel, onClose }) => {
       alert('Please fill in all the fields.');
     }
   };
+
+  useEffect(() => {
+    // Function to handle popstate event
+    const handlePopState = () => {
+      onClose(); // Close the popup
+    };
+
+    window.history.pushState(null, null, location.pathname); // Push current state to prevent back navigation
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [location.pathname, onClose]);
 
   return (
     <div className="popup">
@@ -724,6 +764,7 @@ const HostelDetailsPopup = ({ hostel, onClose }) => {
             </div>
           </div>
         )}
+        
         <div>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
             <h4 style={{ margin: 0, marginRight: '8px' }}>Time: </h4>
@@ -781,7 +822,22 @@ const HostelDetailsPopup = ({ hostel, onClose }) => {
                 onChange={handleCommentsChange}
                 rows="4"
               />
-              <button onClick={handleSubmit}>Submit</button>
+              <button
+  onClick={handleSubmit}
+  className='check-submit'
+  style={{
+    backgroundColor: '#4CAF50', // Change to your desired background color
+    color: 'white', // Text color
+    padding: '10px 20px', // Padding
+    border: 'none', // No border
+    borderRadius: '5px', // Rounded corners
+    cursor: 'pointer', // Pointer cursor on hover
+    fontSize: '16px', // Font size
+  }}
+>
+  Submit
+</button>
+
             </div>
           )}
         </div>
@@ -789,6 +845,8 @@ const HostelDetailsPopup = ({ hostel, onClose }) => {
     </div>
   );
 };
+
+
 
 
 
