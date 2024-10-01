@@ -1,16 +1,17 @@
 
 
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ref, onValue, update } from 'firebase/database';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { database } from '../Firebase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate ,useLocation} from 'react-router-dom';
 import './Mainadmin.css';
 
+
 const Mainadmin = () => {
+  const location = useLocation();
   const [hostels, setHostels] = useState([]);
   const [filteredHostels, setFilteredHostels] = useState([]);
   const [filters, setFilters] = useState({
@@ -148,13 +149,21 @@ const Mainadmin = () => {
 
 
 
-  const handleLogout = () => {
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign out from Firebase
+      localStorage.removeItem('email'); // Clear local storage
+      localStorage.removeItem('firstName'); 
+      navigate("/"); // Redirect to login page
+    } catch (error) {
+      console.error("Error signing out: ", error);
+    }
   };
 
   const openModal = (hostel) => {
-    console.log(hostel)
+    console.log(hostel);
     setSelectedHostel(hostel);
+
     if (hostel.verification && hostel.verification.submitted) {
       setVerification({
         hostelName: hostel.verification.hostelName || '',
@@ -186,8 +195,8 @@ const Mainadmin = () => {
     }
 
     setIsModalOpen(true);
+    window.history.pushState(null, null, location.pathname); // Prevent back navigation
   };
-
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -202,7 +211,22 @@ const Mainadmin = () => {
       marketingPerson: false,
       hostelImages: false,
     });
+    // navigate(-1); // Navigate back to the previous state
   };
+  const handlePopState = useCallback((event) => {
+    if (isModalOpen) {
+      closeModal(); // Close modal on back navigation
+    }
+  }, [isModalOpen]);
+  useEffect(() => {
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [handlePopState]);
+
+
+
 
   const handleRadioChange = (section, value) => {
     setVerification(prev => ({
@@ -287,6 +311,7 @@ const Mainadmin = () => {
       .catch((error) => {
         console.error('Error updating verification data:', error);
       });
+      window.history.pushState(null, null, location.pathname);
   };
   const getMapsUrl = (latitude, longitude) => {
     return latitude && longitude ? `https://www.google.com/maps?q=${latitude},${longitude}` : '#';
@@ -458,16 +483,16 @@ const Mainadmin = () => {
                       onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
                       disabled={!hostel.latitude || !hostel.longitude}
                       style={{
-                        width: '80%',
+                        width: '30%',
                         height: '30px',
-                        backgroundColor: hostel.latitude && hostel.longitude ? "#0056b3" : "gray",
-                        color: "white",
-                        border: 'none',
+                        backgroundColor: hostel.latitude && hostel.longitude ? "lightblue" : "gray",
+                        color: "#333",
+                        borderWidth: '2px',
                         borderRadius: '5px',
                         cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
                       }}
                     >
-                      Open in Google Maps
+                      Open in Maps
                     </button>
               <p><strong>Contact Number:</strong> {hostel.hostelOwnerContact}</p>
               <p><strong>Type:</strong> {hostel.boardingType}</p>

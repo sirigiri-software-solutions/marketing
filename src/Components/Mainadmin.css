@@ -114,6 +114,8 @@
     }
    .all-hostels-container-mainadmin {
     padding-top: 270px;
+  
+   
    }
    .modal-submit-button{
     background-color:#007bff;
@@ -125,9 +127,9 @@
     border-radius: 8px;
    }
   .verification-button{
-    background-color:#ee2907;
-    height: 30px;
-    width:200px ;
+    background-color:#c91e24d7;
+    height: 23px;
+    width:150px ;
     border: none;
     font-size: 18px;
     color: white;
@@ -137,8 +139,10 @@
   }
   
     .filter-section > * {
-      margin-bottom: 10px;
-      width: 100%;
+    
+      width: 90%;
+      padding-left: 5px;
+     
     }
   }
   /* General styles for the logout button */

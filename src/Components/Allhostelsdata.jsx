@@ -89,8 +89,15 @@ const Allhostelsdata = () => {
     }));
   };
 
-  const handleLogout = () => {
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign out from Firebase
+      localStorage.removeItem('email'); // Clear local storage
+      localStorage.removeItem('firstName'); 
+      navigate("/"); // Redirect to login page
+    } catch (error) {
+      console.error("Error signing out: ", error);
+    }
   };
 
   const getMapsUrl = (latitude, longitude) => {
@@ -188,15 +195,14 @@ const Allhostelsdata = () => {
                       style={{
                         width: '100px',
                         height: '30px',
-                        backgroundColor: hostel.latitude && hostel.longitude ? "red" : "gray",
+                        backgroundColor: hostel.latitude && hostel.longitude ? "#0056b3" : "gray",
                         color: "white",
                         border: 'none',
                         borderRadius: '5px',
-                        fontSize:'10px',
                         cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
                       }}
                     >
-                      Open in Google Maps
+                      Open in Maps
                     </button>
                   </td>
                 </tr>
@@ -219,21 +225,20 @@ const Allhostelsdata = () => {
               <p><strong>Owner:</strong> {hostel.hostelOwner}</p>
               <p><strong>Location:</strong> {hostel.hostelLocation}</p>
               <button
-                onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
-                disabled={!hostel.latitude || !hostel.longitude}
-                style={{
-                  width: '70%',
-                  height: '30px',
-                  backgroundColor: hostel.latitude && hostel.longitude ? "red" : "gray",
-                  color: "white",
-                  fontSize:'13px',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
-                }}
-              >
-                Open in Google Maps
-              </button>
+                      onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
+                      disabled={!hostel.latitude || !hostel.longitude}
+                      style={{
+                        width: '30%',
+                        height: '30px',
+                        backgroundColor: hostel.latitude && hostel.longitude ? "lightblue" : "gray",
+                        color: "#333",
+                        borderWidth: '2px',
+                        borderRadius: '5px',
+                        cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
+                      }}
+                    >
+                      Open in Maps
+                    </button>
               <p><strong>Contact Number:</strong> {hostel.hostelOwnerContact}</p>
               <p><strong>Type:</strong> {hostel.boardingType}</p>
               <p><strong>Date:</strong> {hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</p>
