@@ -1,9 +1,9 @@
-import React, { useState, useEffect,useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getAuth, signOut } from 'firebase/auth';
 import { ref, set, push, onValue, update } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage'; // Import Firebase storage functions
 import { database } from '../Firebase';
-import { useNavigate,useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Dashboardpage.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -59,48 +59,46 @@ const Dashboardpage = () => {
     fetchHostelData();
   }, [userEmail, filter, startDate, endDate]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: '',
-    }));
-  };
-
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const storage = getStorage(); // Initialize Firebase Storage
+      console.log("Selected file:", file);
+
+      // Reset any previous errors related to images
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        hostelImages: '',
+      }));
+
+      const storage = getStorage();
       const storageReference = storageRef(storage, `images/${file.name}`);
       const uploadTask = uploadBytesResumable(storageReference, file);
 
       uploadTask.on(
         "state_changed",
         (snapshot) => {
-          // Track progress
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(`Upload is ${progress}% done`);
           setUploadProgress(progress);
         },
         (error) => {
-          // Handle upload error
+          console.error("Upload error:", error);
           setErrors({ hostelImages: `Error uploading image: ${error.message}` });
         },
         async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          console.log("File available at:", downloadURL);
           setFormData((prevData) => ({
             ...prevData,
             hostelImages: downloadURL,
           }));
-          setUploadProgress(null); // Reset progress after successful upload
+          setUploadProgress(null);
         }
       );
+    } else {
+      console.warn("No file selected");
     }
   };
-
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
@@ -114,7 +112,7 @@ const Dashboardpage = () => {
     if (!hostelOwnerContact || !/^\d{10}$/.test(hostelOwnerContact)) {
       formErrors.hostelOwnerContact = "Contact Number must be exactly 10 digits";
     }
-    if (!hostelImages) formErrors.hostelImages = "Hostel Image is required";
+    if (!hostelImages) formErrors.hostelImages = "Hostel Image is required"; // Ensure this condition is checked properly
     if (!hostelLocation) formErrors.hostelLocation = "Hostel Location is required";
     if (!boardingType) formErrors.boardingType = "Boarding Type is required";
     if (!boardingTime) formErrors.boardingTime = "Boarding Time is required";
@@ -147,20 +145,8 @@ const Dashboardpage = () => {
         longitude,
       });
 
-      setFormData({
-        hostelName: '',
-        hostelOwner: '',
-        hostelOwnerContact: '',
-        hostelImages: null,
-        hostelLocation: '',
-        boardingType: '',
-        boardingTime: '',
-        boardingDate: '',
-        marketingPerson: userFirstName,
-        latitude: '',
-        longitude: '',
-      });
-      setErrors({});
+      // Reset form after submission
+      resetForm();
       fetchHostelData();
       setShowForm(false);
     } catch (e) {
@@ -170,6 +156,8 @@ const Dashboardpage = () => {
       setIsSubmitting(false);
     }
   };
+
+
   const resetForm = () => {
     setFormData({
       hostelName: '',
@@ -242,7 +230,17 @@ const Dashboardpage = () => {
   };
 
 
-
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: '',
+    }));
+  };
 
 
 
@@ -297,9 +295,12 @@ const Dashboardpage = () => {
   };
 
 
+
+
   const getMapsUrl = (latitude, longitude) => {
     return latitude && longitude ? `https://www.google.com/maps?q=${latitude},${longitude}` : '#';
   };
+
   const openForm = () => {
     resetForm();
     setShowForm(true);
@@ -323,6 +324,41 @@ const Dashboardpage = () => {
     };
   }, [handlePopState]);
 
+
+
+
+  const openPopup = (hostel) => {
+    setSelectedHostel(hostel);
+    window.history.pushState({ popupOpen: true }, '');
+    console.log('Popup opened for hostel:', hostel.hostelName); // Log when popup opensss
+  };
+
+
+  const closePopup = () => {
+    console.log('Popup closed'); // Log when popup closes
+    setSelectedHostel(null);
+    window.history.pushState({ popupOpen: true }, '');
+
+  };
+
+  useEffect(() => {
+    const handlePopState = (event) => {
+
+      console.log('Popstate event triggered', event.state); // Log the popstate event
+
+      if (event.state && event.state.popupOpen) {
+        closePopup();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+
   return (
     <div className="dashboard-container">
       <div className="sticky-header">
@@ -330,7 +366,7 @@ const Dashboardpage = () => {
           <h4>Welcome, </h4>
           <h4 >{userFirstName}</h4>
         </div>
-        <button onClick={openForm}  className="add-hostel-btn">Add Hostel</button>
+        <button onClick={openForm} className="add-hostel-btn">Add Hostel</button>
 
         <button onClick={handleLogout} className="button-logout">
           Logout
@@ -442,7 +478,7 @@ const Dashboardpage = () => {
                 onChange={handleInputChange}
               />
               {errors.boardingTime && <div className="error-text">{errors.boardingTime}</div>}
- 
+
               <input
                 type="date"
                 placeholder="Boarding Date"
@@ -515,17 +551,17 @@ const Dashboardpage = () => {
                 <option value="Visiting">Visiting</option>
               </select>
             </div>
-            
-              <div className='filter-item'>
-                <p>Hostel Name:</p>
-                <input
-                  type="text"
-                  value={nameFilter}
-                  onChange={(e) => setNameFilter(e.target.value)}
-                  placeholder="Search for Hostel"
-                  style={{ width: '100px', height: '23px', marginRight: '15px', borderRadius: '8px' }}
-                />
-              </div>
+
+            <div className='filter-item'>
+              <p>Hostel Name:</p>
+              <input
+                type="text"
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+                placeholder="Search for Hostel"
+                style={{ width: '100px', height: '23px', marginRight: '15px', borderRadius: '8px' }}
+              />
+            </div>
           </div>
           <div className='filter-container-filter'>
             <div className='filter-item'>
@@ -567,22 +603,22 @@ const Dashboardpage = () => {
               <p>Owner Name: {hostel.hostelOwner}</p>
               <p>Contact Number: {hostel.hostelOwnerContact}</p>
               <p>Location: {hostel.hostelLocation}</p>
-             
+
               <button
-                      onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
-                      disabled={!hostel.latitude || !hostel.longitude}
-                      style={{
-                        width: '30%',
-                        height: '30px',
-                        backgroundColor: hostel.latitude && hostel.longitude ? "lightblue" : "gray",
-                        color: "#333",
-                        borderWidth: '2px',
-                        borderRadius: '5px',
-                        cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
-                      }}
-                    >
-                      Open in Maps
-                    </button>
+                onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
+                disabled={!hostel.latitude || !hostel.longitude}
+                style={{
+                  width: '30%',
+                  height: '30px',
+                  backgroundColor: hostel.latitude && hostel.longitude ? "lightblue" : "gray",
+                  color: "#333",
+                  borderWidth: '2px',
+                  borderRadius: '5px',
+                  cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
+                }}
+              >
+                Open in Maps
+              </button>
 
               <p>Type: {hostel.boardingType}</p>
               <p>Time: {hostel.boardingTime}</p>
@@ -619,7 +655,7 @@ const Dashboardpage = () => {
       {selectedHostel && (
         <HostelDetailsPopup
           hostel={selectedHostel}
-          onClose={() => setSelectedHostel(null)}
+          onClose={closePopup}
         />
       )}
 
@@ -764,7 +800,7 @@ const HostelDetailsPopup = ({ hostel, onClose }) => {
             </div>
           </div>
         )}
-        
+
         <div>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
             <h4 style={{ margin: 0, marginRight: '8px' }}>Time: </h4>
@@ -823,20 +859,20 @@ const HostelDetailsPopup = ({ hostel, onClose }) => {
                 rows="4"
               />
               <button
-  onClick={handleSubmit}
-  className='check-submit'
-  style={{
-    backgroundColor: '#4CAF50', // Change to your desired background color
-    color: 'white', // Text color
-    padding: '10px 20px', // Padding
-    border: 'none', // No border
-    borderRadius: '5px', // Rounded corners
-    cursor: 'pointer', // Pointer cursor on hover
-    fontSize: '16px', // Font size
-  }}
->
-  Submit
-</button>
+                onClick={handleSubmit}
+                className='check-submit'
+                style={{
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                }}
+              >
+                Submit
+              </button>
 
             </div>
           )}
