@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { ref, onValue, update } from 'firebase/database';
+import { ref, onValue, update,set,get } from 'firebase/database';
 import { getAuth, signOut } from 'firebase/auth';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
@@ -151,20 +151,43 @@ const Mainadmin = () => {
 
 
 
-  // const handleLogout = async () => {
-  //   try {
-  //     await signOut(auth); // Sign out from Firebase
-  //     localStorage.removeItem('email'); // Clear local storage
-  //     localStorage.removeItem('firstName'); 
-  //     navigate("/"); // Redirect to login page
-  //   } catch (error) {
-  //     console.error("Error signing out: ", error);
-  //   }
-  // };
+ 
 
-  const handleLogout=()=>{
-    navigate("/")
-  }
+  const handleLogout = async () => {
+    try {
+      // Clear user data from local storage
+      localStorage.removeItem('email');
+      localStorage.removeItem('firstName');
+      localStorage.removeItem('userRole');
+      localStorage.setItem('isLoggedIn', 'false'); // Set login status to false
+  
+      // Optionally, update user login status in Firebase if necessary
+      const email = localStorage.getItem("email"); // Get the email before clearing
+      if (email) {
+        const userRef = ref(database, "signupdata");
+        const snapshot = await get(userRef);
+        const userData = snapshot.val();
+        const userKey = Object.keys(userData).find(
+          (key) => userData[key].signupData.email === email
+        );
+  
+        if (userKey) {
+          await set(ref(database, `signupdata/${userKey}/signupData`), {
+            ...userData[userKey].signupData,
+            isLoggedIn: false, // Update login status
+          });
+        }
+      }
+  
+      // Redirect to the login page or home page
+      navigate("/"); // Adjust the route as needed
+    } catch (error) {
+      console.error("Error during logout: ", error);
+    }
+  };
+  
+
+
 
   const openModal = (hostel) => {
     console.log(hostel);
@@ -217,8 +240,10 @@ const Mainadmin = () => {
       marketingPerson: false,
       hostelImages: false,
     });
-    // navigate(-1); // Navigate back to the previous state
+    
   };
+
+
   const handlePopState = useCallback((event) => {
     if (isModalOpen) {
       closeModal(); // Close modal on back navigation

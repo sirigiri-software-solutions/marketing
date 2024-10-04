@@ -90,6 +90,7 @@ const Allhostelsdata = () => {
       boardingDate: date,
     }));
   };
+  
 
   // const handleLogout = async () => {
   //   try {
@@ -101,9 +102,43 @@ const Allhostelsdata = () => {
   //     console.error("Error signing out: ", error);
   //   }
   // };
-  const handleLogout = () => {
-    navigate("/")
-  }
+
+
+ 
+
+  const handleLogout = async () => {
+    try {
+      // Clear user data from local storage
+      localStorage.removeItem('email');
+      localStorage.removeItem('firstName');
+      localStorage.removeItem('userRole');
+      localStorage.setItem('isLoggedIn', 'false'); // Set login status to false
+  
+      // Optionally, update user login status in Firebase if necessary
+      const email = localStorage.getItem("email"); // Get the email before clearing
+      if (email) {
+        const userRef = ref(database, "signupdata");
+        const snapshot = await get(userRef);
+        const userData = snapshot.val();
+        const userKey = Object.keys(userData).find(
+          (key) => userData[key].signupData.email === email
+        );
+  
+        if (userKey) {
+          await set(ref(database, `signupdata/${userKey}/signupData`), {
+            ...userData[userKey].signupData,
+            isLoggedIn: false, // Update login status
+          });
+        }
+      }
+  
+      // Redirect to the login page or home page
+      navigate("/"); // Adjust the route as needed
+    } catch (error) {
+      console.error("Error during logout: ", error);
+    }
+  };
+  
 
   const getMapsUrl = (latitude, longitude) => {
     return latitude && longitude ? `https://www.google.com/maps?q=${latitude},${longitude}` : '#';
