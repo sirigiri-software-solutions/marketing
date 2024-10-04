@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
+import { getAuth, signOut } from 'firebase/auth';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -20,6 +21,7 @@ const Allhostelsdata = () => {
     boardingDate: null,
   });
   const navigate = useNavigate();
+  const auth = getAuth();
 
   useEffect(() => {
     const hostelsRef = ref(database, 'hostels');
@@ -88,17 +90,55 @@ const Allhostelsdata = () => {
       boardingDate: date,
     }));
   };
+  
+
+  // const handleLogout = async () => {
+  //   try {
+  //     await signOut(auth); // Sign out from Firebase
+  //     localStorage.removeItem('email'); // Clear local storage
+  //     localStorage.removeItem('firstName'); 
+  //     navigate("/"); // Redirect to login page
+  //   } catch (error) {
+  //     console.error("Error signing out: ", error);
+  //   }
+  // };
+
+
+ 
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Sign out from Firebase
-      localStorage.removeItem('email'); // Clear local storage
-      localStorage.removeItem('firstName'); 
-      navigate("/"); // Redirect to login page
+      // Clear user data from local storage
+      localStorage.removeItem('email');
+      localStorage.removeItem('firstName');
+      localStorage.removeItem('userRole');
+      localStorage.setItem('isLoggedIn', 'false'); // Set login status to false
+  
+      // Optionally, update user login status in Firebase if necessary
+      const email = localStorage.getItem("email"); // Get the email before clearing
+      if (email) {
+        const userRef = ref(database, "signupdata");
+        const snapshot = await get(userRef);
+        const userData = snapshot.val();
+        const userKey = Object.keys(userData).find(
+          (key) => userData[key].signupData.email === email
+        );
+  
+        if (userKey) {
+          await set(ref(database, `signupdata/${userKey}/signupData`), {
+            ...userData[userKey].signupData,
+            isLoggedIn: false, // Update login status
+          });
+        }
+      }
+  
+      // Redirect to the login page or home page
+      navigate("/"); // Adjust the route as needed
     } catch (error) {
-      console.error("Error signing out: ", error);
+      console.error("Error during logout: ", error);
     }
   };
+  
 
   const getMapsUrl = (latitude, longitude) => {
     return latitude && longitude ? `https://www.google.com/maps?q=${latitude},${longitude}` : '#';
@@ -110,48 +150,58 @@ const Allhostelsdata = () => {
         <div className='uma-uma'>
           <div style={{ marginRight: '20px' }}><h3>Welcome Admin</h3></div>
           <div>
-            <button onClick={handleLogout} className='logout-button' style={{ backgroundColor: 'blue', color: 'white', borderRadius: '8px',border:'none',marginRight:'10px' }}>
+            <button onClick={handleLogout} className='logout-button' style={{ backgroundColor: 'blue', color: 'white', borderRadius: '8px', border: 'none', marginRight: '10px' }}>
               Logout
             </button>
           </div>
         </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', justifyContent: 'space-evenly' }}>
+          <div style={{ flex: '1 1 45%', minWidth: '200px' }}>
+            <input
+              type="text"
+              placeholder="Marketing Person"
+              name="marketingPerson"
+              value={filters.marketingPerson}
+              onChange={handleFilterChange}
+              style={{ width: '100%', height: '40px', padding: '8px', boxSizing: 'border-box' }} // Adjust height and padding
+            />
+          </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-          <input
-            type="text"
-            placeholder="Marketing Person"
-            style={{ width: 'calc(50% - 10px)', height: '22px', borderWidth: '2px' }}
-            name="marketingPerson"
-            value={filters.marketingPerson}
-            onChange={handleFilterChange}
-          />
-          <select
-            name="boardingType"
-            style={{ width: 'calc(50% - 10px)', height: '32px', borderWidth: '2px' }}
-            value={filters.boardingType}
-            onChange={handleFilterChange}
-          >
-            <option value="">All Boarding Types</option>
-            <option value="OnBoarding">OnBoarding</option>
-            <option value="Visiting">Visiting</option>
-          </select>
-          <div  style={{ display:'flex', flexDirection:'row' }}>
-          <input
-            type="text"
-            placeholder="Hostel Location"
-            style={{ width: '195px', height: '22px', borderWidth: '2px',marginRight:'10px' }}
-            name="hostelLocation"
-            value={filters.hostelLocation}
-            onChange={handleFilterChange}
-          />
-          <DatePicker
-            selected={filters.boardingDate}
-            onChange={handleDateChange}
-            placeholderText="Select Boarding Date"
-            style={{ width: 'calc(50% - 10px)', height: '32px', borderWidth: '15px' }}
-          />
+          <div style={{ flex: '1 1 45%', minWidth: '200px' }}>
+            <select
+              name="boardingType"
+              value={filters.boardingType}
+              onChange={handleFilterChange}
+              style={{ width: '100%', height: '40px', padding: '8px', boxSizing: 'border-box' }} // Adjust height and padding
+            >
+              <option value="">All Boarding Types</option>
+              <option value="OnBoarding">OnBoarding</option>
+              <option value="Visiting">Visiting</option>
+            </select>
+          </div>
+
+          <div style={{ flex: '1 1 45%', minWidth: '200px' }}>
+            <input
+              type="text"
+              placeholder="Hostel Location"
+              name="hostelLocation"
+              value={filters.hostelLocation}
+              onChange={handleFilterChange}
+              style={{ width: '100%', height: '40px', padding: '8px', boxSizing: 'border-box' }} // Adjust height and padding
+            />
+          </div>
+
+          <div style={{ flex: '1 1 45%', minWidth: '200px' }}>
+            <DatePicker
+              selected={filters.boardingDate}
+              onChange={handleDateChange}
+              placeholderText="Select Date"
+              style={{ width: '100%', height: '40px', padding: '8px', boxSizing: 'border-box' }} // Adjust height and padding
+            />
           </div>
         </div>
+
+
       </div>
 
       {/* Table for larger screens */}
@@ -225,20 +275,20 @@ const Allhostelsdata = () => {
               <p><strong>Owner:</strong> {hostel.hostelOwner}</p>
               <p><strong>Location:</strong> {hostel.hostelLocation}</p>
               <button
-                      onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
-                      disabled={!hostel.latitude || !hostel.longitude}
-                      style={{
-                        width: '30%',
-                        height: '30px',
-                        backgroundColor: hostel.latitude && hostel.longitude ? "lightblue" : "gray",
-                        color: "#333",
-                        borderWidth: '2px',
-                        borderRadius: '5px',
-                        cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
-                      }}
-                    >
-                      Open in Maps
-                    </button>
+                onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
+                disabled={!hostel.latitude || !hostel.longitude}
+                style={{
+                  width: '30%',
+                  height: '30px',
+                  backgroundColor: hostel.latitude && hostel.longitude ? "lightblue" : "gray",
+                  color: "#333",
+                  borderWidth: '2px',
+                  borderRadius: '5px',
+                  cursor: hostel.latitude && hostel.longitude ? 'pointer' : 'not-allowed'
+                }}
+              >
+                Open in Maps
+              </button>
               <p><strong>Contact Number:</strong> {hostel.hostelOwnerContact}</p>
               <p><strong>Type:</strong> {hostel.boardingType}</p>
               <p><strong>Date:</strong> {hostel.boardingDate ? format(new Date(hostel.boardingDate), 'PPP') : 'No Date'}</p>
@@ -250,7 +300,7 @@ const Allhostelsdata = () => {
                   'No Image'
                 )}
               </div>
-             
+
             </div>
           ))
         ) : (

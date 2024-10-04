@@ -67,7 +67,7 @@
 
   /* Ensure that content starts below the fixed filter section */
   .all-hostels-container-allhostelsdata {
-    padding-top: 200px; /* Adjust based on the actual height of your filter section */
+    padding-top: 230px; /* Adjust based on the actual height of your filter section */
   }
 
   .hostel-card-admin {
