@@ -1542,7 +1542,7 @@ const Dashboardpage = () => {
                 onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
                 disabled={!hostel.latitude || !hostel.longitude}
                 style={{
-                  width: '30%',
+                  width: '40%',
                   height: '30px',
                   backgroundColor: hostel.latitude && hostel.longitude ? "lightblue" : "gray",
                   color: "#333",
