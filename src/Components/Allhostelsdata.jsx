@@ -2,7 +2,7 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue ,get,set} from 'firebase/database';
 import { getAuth, signOut } from 'firebase/auth';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
@@ -278,7 +278,7 @@ const Allhostelsdata = () => {
                 onClick={() => window.open(getMapsUrl(hostel.latitude, hostel.longitude), '_blank')}
                 disabled={!hostel.latitude || !hostel.longitude}
                 style={{
-                  width: '30%',
+                  width: '40%',
                   height: '30px',
                   backgroundColor: hostel.latitude && hostel.longitude ? "lightblue" : "gray",
                   color: "#333",
